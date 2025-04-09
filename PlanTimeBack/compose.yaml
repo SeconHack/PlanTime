@@ -1,0 +1,6 @@
+﻿services:
+  plantimeback.api:
+    image: plantimeback.api
+    build:
+      context: .
+      dockerfile: PlanTimeBack.Api/Dockerfile
