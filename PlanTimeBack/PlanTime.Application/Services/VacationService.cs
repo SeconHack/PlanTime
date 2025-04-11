@@ -11,10 +11,11 @@ public class VacationService : IVacationService
     private readonly IVacationRepository _vacationRepository;
     private readonly IDivisionRepository _divisionRepository;
 
-    public VacationService(IAccountRepository accountRepository, IVacationRepository vacationRepository)
+    public VacationService(IAccountRepository accountRepository, IVacationRepository vacationRepository, IDivisionRepository divisionRepository)
     {
         _accountRepository = accountRepository;
         _vacationRepository = vacationRepository;
+        _divisionRepository = divisionRepository;
     }
 
     public async Task<List<VacationInfo>> GetAllVacationInfoAsync()
