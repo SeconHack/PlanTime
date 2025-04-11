@@ -11,7 +11,7 @@ namespace PlanTime.Api.Controllers.Abstract;
 /// </remarks>
 [ApiController]
 [Route("v1/[controller]")]
-public class ApiControllerV1 : ControllerBase
+public class ApiControllerV1 : BaseAuthController
 {
     
 }
