@@ -7,7 +7,7 @@ public interface IVacationService
 {
     Task<List<VacationInfo>> GetAllVacationInfoAsync();
     
-    Task<DbVacation> Create(CreateVacationRequest model);
+    Task<DbVacation> Create(int userId,CreateVacationRequest model);
     Task<List<DbVacation>> GetAll();
     Task<DbVacation> GetById( int id );
 }

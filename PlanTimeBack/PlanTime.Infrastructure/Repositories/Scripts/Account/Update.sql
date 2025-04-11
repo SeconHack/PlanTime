@@ -8,6 +8,5 @@ SET email = @Email,
     count_vacation_days = @CountVacationDays,
     profession_id = @ProfessionId,
     role_id = @RoleId,
-    division_id = @DivisionId,
-    vacation_id = @VacationId
+    division_id = @DivisionId
 WHERE id = @Id;

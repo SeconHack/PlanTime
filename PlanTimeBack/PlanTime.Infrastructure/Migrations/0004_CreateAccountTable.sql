@@ -1,4 +1,4 @@
-CREATE TABLE account (
+﻿CREATE TABLE account (
                          id SERIAL NOT NULL UNIQUE,
                          email TEXT,
                          hashed_password TEXT UNIQUE,
@@ -10,6 +10,5 @@ CREATE TABLE account (
                          role_id INTEGER,
                          profession_id INTEGER,
                          division_id INTEGER,
-                         vacation_id INTEGER NULL,
                          PRIMARY KEY(id)
 );

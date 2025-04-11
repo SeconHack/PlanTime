@@ -6,8 +6,7 @@ INSERT INTO account (email,
                      count_vacation_days,
                      profession_id,
                      role_id,
-                     division_id,
-                     vacation_id)
+                     division_id)
 VALUES (@Email,
         @HashedPassword,
         @LastName,
@@ -17,8 +16,7 @@ VALUES (@Email,
         @CountVacationDays,
         @ProfessionId,
         @RoleId,
-        @DivisionId,
-        @VacationId)
+        @DivisionId)
 RETURNING id,
             email                   AS Email,
             hashed_password         AS HashedPassword,
@@ -29,5 +27,4 @@ RETURNING id,
             count_vacation_days     AS CountVacationDays,
             profession_id           AS ProfessionId,
             role_id                 AS RoleId,
-            division_id             AS DivisionId,
-            vacation_id             AS VacationId;
+            division_id             AS DivisionId;

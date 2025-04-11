@@ -8,6 +8,5 @@ SELECT id                   AS Id,
        count_vacation_days  AS CountVacationDays,
        profession_id        AS ProfessionId,
        role_id              AS RoleId,
-       division_id          AS DivisionId,
-       vacation_id          AS VacationId
+       division_id          AS DivisionId
 FROM account;

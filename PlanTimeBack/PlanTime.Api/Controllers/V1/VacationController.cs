@@ -9,10 +9,12 @@ namespace PlanTime.Api.Controllers.V1;
 [AllowAnonymous]
 public class VacationController(IVacationService vacationService) : ApiControllerV1
 {
+    
     [HttpPost]
     public async Task<ActionResult> Create(CreateVacationRequest model)
     {
-        var result = await vacationService.Create(model);
+
+        var result = await vacationService.Create(UserId,model);
         return Ok(result);
     }
 

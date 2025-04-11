@@ -20,47 +20,35 @@ public class VacationService : IVacationService
 
     public async Task<List<VacationInfo>> GetAllVacationInfoAsync()
     {
-        var accounts = await _accountRepository.GetAllAsync();
+        var vacations = await _vacationRepository.GetAllAsync();
         var allVacationInfo = new List<VacationInfo>();
 
-        foreach (var account in accounts)
+        foreach (var vacation in vacations)
         {
-            if (account.VacationId == null || account.VacationId.Count == 0)
-                continue;
-
-            var vacations = new List<DbVacation>();
-
-            foreach (var vacationId in account.VacationId)
-            {
-                var vacation = await _vacationRepository.GetByIdAsync(vacationId);
-                if (vacation != null)
-                {
-                    vacations.Add(vacation);
-                }
-            }
-            var division = await _divisionRepository.GetByIdAsync(account.DivisionId);
+            var user = await _accountRepository.GetByIdAsync(vacation.UserId);
+            var division = await _divisionRepository.GetByIdAsync(user.DivisionId);
             var divisionName = division?.DivisionName ?? "Неизвестное подразделение";
-            foreach (var vacation in vacations)
-            {
-                allVacationInfo.Add(new VacationInfo(
-                    account.LastName,
-                    divisionName,
-                    vacation.StartDate,
-                    vacation.EndDate
-                ));
-            }
+            allVacationInfo.Add(new VacationInfo(
+                user.LastName,
+                divisionName,
+                vacation.StartDate,
+                vacation.EndDate
+            ));
+
         }
 
         return allVacationInfo;
     }
 
-    public async Task<DbVacation> Create(CreateVacationRequest model)
+    public async Task<DbVacation> Create(int userId ,CreateVacationRequest model)
     {
+        
         var vacation = new DbVacation
         {
             Id = 0,
             StartDate = model.StartDate,
             EndDate = model.EndDate,
+            UserId = userId
         };
         var candidate = await _vacationRepository.CreateAsync(vacation);
         return candidate;

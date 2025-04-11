@@ -19,4 +19,9 @@ public class DbVacation
     /// Получает или задает дату окончания периода отпуска.
     /// </summary>
     public DateTime EndDate { get; set; }
+    
+    /// <summary>
+    /// Получает или задает айди пользователя с данным отпуском.
+    /// </summary>
+    public int UserId { get; set; }
 }
