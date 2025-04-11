@@ -28,8 +28,8 @@ public static class InfrastructureHostExtensions
 
         EnsureDatabase.For.PostgresqlDatabase(connectionString);
 
-        var resources = typeof(DapperContext<>).Assembly.GetManifestResourceNames();
-        Console.WriteLine(string.Join("\n", resources));
+        //var resources = typeof(DapperContext<>).Assembly.GetManifestResourceNames();
+        //Console.WriteLine(string.Join("\n", resources));
         
         var upgrader = DeployChanges.To
             .PostgresqlDatabase(connectionString)

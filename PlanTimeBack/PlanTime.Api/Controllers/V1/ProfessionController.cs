@@ -7,7 +7,6 @@ using PlanTime.Models.Profession.Request;
 
 namespace PlanTime.Api.Controllers.V1;
 
-[AllowAnonymous]
 public class ProfessionController(IProfessionService professionService) : ApiControllerV1
 {
     [HttpPost]
