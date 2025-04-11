@@ -54,4 +54,27 @@ public class VacationService : IVacationService
         return allVacationInfo;
     }
 
+    public async Task<DbVacation> Create(CreateVacationRequest model)
+    {
+        var vacation = new DbVacation
+        {
+            Id = 0,
+            StartDate = model.StartDate,
+            EndDate = model.EndDate,
+        };
+        var candidate = await _vacationRepository.CreateAsync(vacation);
+        return candidate;
+    }
+
+    public async Task<List<DbVacation>> GetAll()
+    {
+        var vacations = await _vacationRepository.GetAllAsync();
+        return vacations;
+    }
+
+    public async Task<DbVacation> GetById(int id)
+    {
+        var vacation = await _vacationRepository.GetByIdAsync(id);
+        return vacation;
+    }
 }
