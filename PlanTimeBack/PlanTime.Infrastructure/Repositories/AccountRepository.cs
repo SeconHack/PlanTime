@@ -43,4 +43,9 @@ public class AccountRepository(IDapperContext<IDapperSettings> dapperContext) : 
     {
         return await dapperContext.FirstOrDefault<DbAccount>(new QueryObject(User.GetByEmail, new { email }));
     }
+    
+    public async Task<List<DbAccount>> GetAllAsync()
+    {
+        return await dapperContext.ListOrEmpty<DbAccount>(new QueryObject(User.GetAll));
+    }
 }

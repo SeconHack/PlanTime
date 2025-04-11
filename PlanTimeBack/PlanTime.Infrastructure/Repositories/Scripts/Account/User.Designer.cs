@@ -152,5 +152,15 @@ namespace PlanTime.Infrastructure.Repositories.Scripts.Account {
                 return ResourceManager.GetString("Update", resourceCulture);
             }
         }
+        
+        internal static string GetAll
+        {
+            get
+            {
+                return ResourceManager.GetString("GetAll", resourceCulture);
+            }
+        }
+
+        
     }
 }

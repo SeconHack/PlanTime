@@ -11,6 +11,7 @@
     <ItemGroup>
       <ProjectReference Include="..\PlanTime.Common\PlanTime.Common.csproj" />
       <ProjectReference Include="..\PlanTime.Domain\PlanTime.Domain.csproj" />
+      <ProjectReference Include="..\PlanTime.Models\PlanTime.Models.csproj" />
     </ItemGroup>
 
 </Project>

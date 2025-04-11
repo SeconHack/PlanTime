@@ -41,4 +41,6 @@ public interface IAccountRepository
     /// Получает учетную запись по адресу электронной почты.
     /// </summary>
     Task<DbAccount> GetByEmailAsync(string email);
+    
+    Task<List<DbAccount>> GetAllAsync();
 }

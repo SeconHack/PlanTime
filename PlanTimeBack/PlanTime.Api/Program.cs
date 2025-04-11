@@ -1,5 +1,7 @@
 using PlanTime.Api.Extensions;
 using PlanTime.Api.Middleware;
+using PlanTime.Application.Services;
+using PlanTime.Application.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -21,7 +23,7 @@ builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
-
+builder.Services.AddScoped<IVacationService, VacationService>();
 var app = builder.Build();
 
 
