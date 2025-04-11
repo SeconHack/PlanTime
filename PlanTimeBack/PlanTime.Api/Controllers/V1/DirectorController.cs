@@ -9,17 +9,18 @@ using PlanTime.Models.Vacations;
 namespace PlanTime.Api.Controllers.V1;
 
 [Route("api/[controller]")]
-public class DirectorController : ApiControllerV1
+public class DirectorController(IVacationService vacationService) : ApiControllerV1
 {
-    private readonly IVacationService _vacationService;
-
-    [Authorize]
     [HttpGet("vacations/export")]
     public async Task<IActionResult> ExportVacationsToExcel()
     {
-        var vacations = await _vacationService.GetAllVacationInfoAsync();
+        var vacations = await vacationService.GetAllVacationInfoAsync();
 
-        // Генерация Excel-файлов в памяти
+        if (vacations == null || vacations.Count == 0)
+        {
+            return BadRequest("Нет данных об отпусках для экспорта.");
+        }
+
         var files = GenerateExcelFiles(vacations);
 
         var zipStream = new MemoryStream();
