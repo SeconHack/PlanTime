@@ -64,6 +64,8 @@ public static class InfrastructureHostExtensions
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IProfessionRepository, ProfessionRepository>();
+        services.AddScoped<IVacationRepository, VacationRepository>();
+        services.AddScoped<IDivisionRepository, DivisionRepository>();
 
     }
 }
