@@ -22,5 +22,6 @@ public static class ApplicationHostExtensions
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IProfessionService, ProfessionService>();
         services.AddScoped<IVacationService, VacationService>();
+        services.AddScoped<IDivisionService, DivisionService>();
     }
 }
