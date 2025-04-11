@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
@@ -10,7 +9,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="dbup-postgresql" Version="6.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.8.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -20,9 +23,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers\" />
-      <Folder Include="Extensions\" />
-      <Folder Include="Middleware\" />
+      <ProjectReference Include="..\PlanTime.Application\PlanTime.Application.csproj" />
+      <ProjectReference Include="..\PlanTime.Common\PlanTime.Common.csproj" />
+      <ProjectReference Include="..\PlanTime.Infrastructure\PlanTime.Infrastructure.csproj" />
+      <ProjectReference Include="..\PlanTime.Models\PlanTime.Models.csproj" />
     </ItemGroup>
 
 </Project>

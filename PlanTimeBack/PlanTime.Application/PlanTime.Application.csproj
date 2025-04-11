@@ -9,8 +9,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Dto\Mappers\" />
-      <Folder Include="Services\Interfaces\" />
+      <ProjectReference Include="..\PlanTime.Common\PlanTime.Common.csproj" />
+      <ProjectReference Include="..\PlanTime.Domain\PlanTime.Domain.csproj" />
     </ItemGroup>
 
 </Project>

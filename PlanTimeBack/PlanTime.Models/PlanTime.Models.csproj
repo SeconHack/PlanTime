@@ -9,7 +9,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Auth\Request\" />
       <Folder Include="Auth\Response\" />
     </ItemGroup>
 

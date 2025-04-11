@@ -8,10 +8,4 @@
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
-    <ItemGroup>
-      <Folder Include="Entities\" />
-      <Folder Include="Exceptions\Auth\" />
-      <Folder Include="Repositories\" />
-    </ItemGroup>
-
 </Project>

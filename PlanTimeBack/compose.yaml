@@ -1,6 +1,51 @@
 ﻿services:
-  plantimeback.api:
+  backend:
     image: plantimeback.api
     build:
       context: .
-      dockerfile: PlanTimeBack.Api/Dockerfile
+      dockerfile: PlanTime.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: "http://0.0.0.0:9090"
+      HTTP_PORTS: "9090"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: always
+    ports:
+      - "9090:9090"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 512M
+          
+  database:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'password'
+      POSTGRES_DB: 'plan_time'
+    networks:
+      - backend
+    ports:
+      - "50000:5432"
+    volumes:
+      - postgres_database:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  backend:
+    driver: bridge
+    
+volumes:
+  postgres_database:

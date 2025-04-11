@@ -1,0 +1,47 @@
+﻿using PlanTime.Application.Dto;
+using PlanTime.Application.Dto.Mappers;
+using PlanTime.Application.Services.Interfaces;
+using PlanTime.Domain.Entities;
+using PlanTime.Domain.Exceptions.Account;
+using PlanTime.Domain.Repositories;
+
+namespace PlanTime.Application.Services;
+
+public class AccountService(IAccountRepository repository) : IAccountService
+{
+    
+    public async Task<AccountDto> GetByIdAsync(int id)
+    {
+        var candidate = await repository.GetByIdAsync(id);
+
+        if (candidate is null) throw AccountNotFoundException.WithSuchId(id);
+
+        return candidate.ToDto();
+    }
+
+    public async Task<AccountDto> GetByEmailAsync(string email)
+    {
+        var candidate = await repository.GetByEmailAsync(email);
+
+        if (candidate is null) throw AccountNotFoundException.WithSuchEmail(email);
+
+        return candidate.ToDto();
+    }
+
+    public async Task<AccountDto> CreateAsync(AccountDto dto)
+    {
+        var candidate = await repository.CreateAsync(new DbAccount
+        {
+            Email = dto.Email,
+            HashedPassword = dto.HashedPassword,
+            LastName = dto.LastName,
+            FirstName = dto.FirstName,
+            MiddleName = dto.MiddleName,
+            Phone = dto.Phone,
+            RoleId = dto.RoleId,
+            ProfessionId = dto.ProfessionId
+        });
+
+        return candidate.ToDto();
+    }
+}
