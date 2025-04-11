@@ -2,6 +2,7 @@
 using PlanTime.Application.Dto;
 using PlanTime.Application.Services.Interfaces;
 using PlanTime.Common.Authentication.Hash.Interfaces;
+using PlanTime.Domain.Entities;
 using PlanTime.Domain.Exceptions.Auth;
 
 namespace PlanTime.Application.Services;
@@ -9,6 +10,7 @@ namespace PlanTime.Application.Services;
 public class AuthenticationService(
     IAccountService accountService,
     IRoleService roleService,
+    IDivisionService divisionService,
     IPasswordHasher passwordHasher,
     IJwtTokenService jwtService) : IAuthenticationService
 {
@@ -25,8 +27,8 @@ public class AuthenticationService(
     {
         var hashedPassword = passwordHasher.Hash(password);
         var role = await roleService.GetById(roleId);
+        var div = await divisionService.GetById(divisionId);
         var roleName = role.RoleName;
-        
         var candidate = await accountService.CreateAsync(new AccountDto
         {
             Email = email,
@@ -34,7 +36,8 @@ public class AuthenticationService(
             FirstName = firstName,
             MiddleName = middleName,
             Phone = phone,
-            HashedPassword = hashedPassword
+            HashedPassword = hashedPassword,
+            DivisionId = divisionId,
         });
 
         var token = await jwtService.CreateAccessTokenAsync(new List<Claim>

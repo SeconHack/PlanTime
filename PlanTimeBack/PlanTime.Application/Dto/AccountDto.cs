@@ -44,6 +44,8 @@ public class AccountDto
     /// </summary>
     public int RoleId { get; set; }
     
+    public int DivisionId { get; set; }
+    
     /// <summary>
     /// Захешированный пароль аккаунта (игнорируется при сериализации).
     /// </summary>

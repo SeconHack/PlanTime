@@ -2,13 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using PlanTime.Api.Controllers.Abstract;
 using PlanTime.Application.Services.Interfaces;
+using PlanTime.Domain.Repositories;
 using PlanTime.Models.Auth.Request;
 using LoginRequest = PlanTime.Models.Auth.Request.LoginRequest;
 
 namespace PlanTime.Api.Controllers.V1;
 
 [AllowAnonymous]
-public class AuthController(IAuthenticationService authService) : ApiControllerV1
+public class AuthController(IAuthenticationService authService, IVacationService vacationService) : ApiControllerV1
 {
     [Authorize(Roles = "Admin")]
     [HttpPost("login")]
@@ -37,6 +38,13 @@ public class AuthController(IAuthenticationService authService) : ApiControllerV
             divisionId,
             password);
         
+        return Ok(result);
+    }
+    
+    [HttpGet("getAll")]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await vacationService.GetAllVacationInfoAsync();
         return Ok(result);
     }
 }

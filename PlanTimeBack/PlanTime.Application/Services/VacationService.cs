@@ -27,16 +27,14 @@ public class VacationService : IVacationService
         {
             var user = await _accountRepository.GetByIdAsync(vacation.UserId);
             var division = await _divisionRepository.GetByIdAsync(user.DivisionId);
-            var divisionName = division?.DivisionName ?? "Неизвестное подразделение";
+            var divisionName = division.DivisionName;
             allVacationInfo.Add(new VacationInfo(
                 user.LastName,
                 divisionName,
                 vacation.StartDate,
                 vacation.EndDate
             ));
-
         }
-
         return allVacationInfo;
     }
 

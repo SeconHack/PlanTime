@@ -12,7 +12,6 @@ public class VacationController(IVacationService vacationService) : ApiControlle
     [HttpPost]
     public async Task<ActionResult> Create(CreateVacationRequest model)
     {
-
         var result = await vacationService.Create(UserId,model);
         return Ok(result);
     }

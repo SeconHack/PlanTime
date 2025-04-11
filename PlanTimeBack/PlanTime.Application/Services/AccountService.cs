@@ -38,6 +38,7 @@ public class AccountService(IAccountRepository repository) : IAccountService
             MiddleName = dto.MiddleName,
             Phone = dto.Phone,
             RoleId = dto.RoleId,
+            DivisionId = dto.DivisionId,
             ProfessionId = dto.ProfessionId
         });
 
