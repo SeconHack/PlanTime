@@ -5,7 +5,6 @@ using PlanTime.Application.Services.Interfaces;
 
 namespace PlanTime.Api.Controllers.V1;
 
-[AllowAnonymous]
 public class ProfileController(IAccountService accountService) : ApiControllerV1
 {
     [HttpGet("{id}")]

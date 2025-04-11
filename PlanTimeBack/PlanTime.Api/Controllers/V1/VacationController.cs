@@ -6,7 +6,6 @@ using PlanTime.Models.Vacations;
 
 namespace PlanTime.Api.Controllers.V1;
 
-[AllowAnonymous]
 public class VacationController(IVacationService vacationService) : ApiControllerV1
 {
     

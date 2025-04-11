@@ -5,10 +5,10 @@ using PlanTime.Application.Services.Interfaces;
 
 namespace PlanTime.Api.Controllers.V1;
 
-[AllowAnonymous]
 public class DivisionController(IDivisionService divisionService) : ApiControllerV1
 {
     [HttpPost("{name}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create(string name)
     {
         var result = await divisionService.Create(name);

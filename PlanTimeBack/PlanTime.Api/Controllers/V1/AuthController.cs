@@ -10,6 +10,7 @@ namespace PlanTime.Api.Controllers.V1;
 [AllowAnonymous]
 public class AuthController(IAuthenticationService authService) : ApiControllerV1
 {
+    [Authorize(Roles = "Admin")]
     [HttpPost("login")]
     public async Task<ActionResult> Login(LoginRequest loginRequest)
     {
