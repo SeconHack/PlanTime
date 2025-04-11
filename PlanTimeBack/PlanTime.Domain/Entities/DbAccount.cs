@@ -39,7 +39,12 @@ public class DbAccount
     /// Получает или задает номер телефона пользователя.
     /// </summary>
     public string Phone { get; set; }
-    
+
+    /// <summary>
+    /// Количество дней отпуска.
+    /// </summary>
+    public int CountVacationDays { get; set; } = 28;
+
     /// <summary>
     /// Получает или задает идентификатор профессии пользователя.
     /// </summary>

@@ -17,12 +17,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\PlanTime.Application\PlanTime.Application.csproj" />
       <ProjectReference Include="..\PlanTime.Common\PlanTime.Common.csproj" />
       <ProjectReference Include="..\PlanTime.Infrastructure\PlanTime.Infrastructure.csproj" />

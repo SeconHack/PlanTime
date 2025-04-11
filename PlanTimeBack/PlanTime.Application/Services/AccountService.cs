@@ -9,7 +9,6 @@ namespace PlanTime.Application.Services;
 
 public class AccountService(IAccountRepository repository) : IAccountService
 {
-    
     public async Task<AccountDto> GetByIdAsync(int id)
     {
         var candidate = await repository.GetByIdAsync(id);

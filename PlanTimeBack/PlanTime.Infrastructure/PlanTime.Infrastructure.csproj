@@ -19,8 +19,12 @@
             <Generator>ResXFileCodeGenerator</Generator>
             <LastGenOutput>Account.Designer.cs</LastGenOutput>
         </EmbeddedResource>
-        <None Remove="Migrations\*.sql"/>
-        <EmbeddedResource Include="Migrations\*.sql"/>
+        <None Remove="Migrations\0003_CreateAccountTable.sql"/>
+        <EmbeddedResource Include="Migrations\0003_CreateAccountTable.sql"/>
+        <EmbeddedResource Update="Repositories\Scripts\Account\User.resx">
+          <Generator>ResXFileCodeGenerator</Generator>
+          <LastGenOutput>User.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
@@ -28,8 +32,8 @@
             <Generator>ResXFileCodeGenerator</Generator>
             <LastGenOutput>Role.Designer.cs</LastGenOutput>
         </EmbeddedResource>
-        <None Remove="Migrations\*.sql"/>
-        <EmbeddedResource Include="Migrations\*.sql"/>
+        <None Remove="Migrations\0001_CreateRoleTable.sql"/>
+        <EmbeddedResource Include="Migrations\0001_CreateRoleTable.sql"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -37,8 +41,8 @@
             <Generator>ResXFileCodeGenerator</Generator>
             <LastGenOutput>Profession.Designer.cs</LastGenOutput>
         </EmbeddedResource>
-        <None Remove="Migrations\*.sql"/>
-        <EmbeddedResource Include="Migrations\*.sql"/>
+        <None Remove="Migrations\0002_CreateProfessionTable.sql"/>
+        <EmbeddedResource Include="Migrations\0002_CreateProfessionTable.sql"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -46,35 +50,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Update="Repositories\Scripts\Account\User.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>User.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
-      <EmbeddedResource Update="Repositories\Scripts\Profession\Profession.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>Profession.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
-      <EmbeddedResource Update="Repositories\Scripts\Role\Role.resx">
-        <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>Role.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
-    </ItemGroup>
-
-    <ItemGroup>
       <Compile Update="Repositories\Scripts\Account\User.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
         <DependentUpon>User.resx</DependentUpon>
-      </Compile>
-      <Compile Update="Repositories\Scripts\Profession\Profession.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>Profession.resx</DependentUpon>
-      </Compile>
-      <Compile Update="Repositories\Scripts\Role\Role.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>Role.resx</DependentUpon>
       </Compile>
     </ItemGroup>
 

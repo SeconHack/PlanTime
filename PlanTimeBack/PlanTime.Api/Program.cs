@@ -11,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerWithAuth();
 
+builder.Services.AddDapper();
 builder.Services.MigrateDatabase(configuration);
 
 builder.Services.AddAuthModule();

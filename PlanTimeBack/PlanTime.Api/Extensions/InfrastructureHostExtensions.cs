@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using DbUp;
+using Durak.Dapper;
+using Durak.Dapper.Interfaces;
 using PlanTime.Domain.Repositories;
 using PlanTime.Infrastructure.Factories;
 using PlanTime.Infrastructure.Factories.Interfaces;
@@ -26,9 +28,12 @@ public static class InfrastructureHostExtensions
 
         EnsureDatabase.For.PostgresqlDatabase(connectionString);
 
+        var resources = typeof(DapperContext<>).Assembly.GetManifestResourceNames();
+        Console.WriteLine(string.Join("\n", resources));
+        
         var upgrader = DeployChanges.To
             .PostgresqlDatabase(connectionString)
-            .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
+            .WithScriptsEmbeddedInAssembly(typeof(DapperContext<>).Assembly)
             .WithTransaction()
             .WithVariablesDisabled()
             .LogToConsole()
@@ -38,6 +43,13 @@ public static class InfrastructureHostExtensions
             upgrader.PerformUpgrade();
 
         return services;
+    }
+    
+    public static IServiceCollection AddDapper(this IServiceCollection services)
+    {
+        return services
+            .AddSingleton<IDapperSettings, UserServiceDatabase>()
+            .AddSingleton<IDapperContext<IDapperSettings>, DapperContext<IDapperSettings>>();
     }
 
     /// <summary>
