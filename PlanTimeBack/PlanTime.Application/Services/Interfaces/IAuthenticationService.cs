@@ -25,6 +25,8 @@ public interface IAuthenticationService
         string middleName,
         string phone,
         int professionId,
+        int roleId,
+        int divisionId,
         string password);
 
     /// <summary>

@@ -18,6 +18,8 @@ public class AuthenticationService(
         string middleName,
         string phone,
         int professionId,
+        int roleId,
+        int divisionId,
         string password)
     {
         var hashedPassword = passwordHasher.Hash(password);

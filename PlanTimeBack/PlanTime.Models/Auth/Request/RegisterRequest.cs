@@ -8,6 +8,8 @@ public class RegisterRequest
     public string MiddleName { get; set; }
     public string Phone { get; set; }
     public int ProfessionId { get; set; }
+    public int RoleId { get; set; }
+    public int DivisionId { get; set; }
     public string Password { get; set; }
 
     public void Deconstruct(
@@ -17,6 +19,8 @@ public class RegisterRequest
         out string middleName,
         out string phone,
         out int professionId,
+        out int roleId,
+        out int divisionId,
         out string password)
     {
         email = Email;
@@ -26,5 +30,7 @@ public class RegisterRequest
         phone = Phone;
         professionId = ProfessionId;
         password = Password;
+        roleId = RoleId;
+        divisionId = DivisionId;
     }
 }

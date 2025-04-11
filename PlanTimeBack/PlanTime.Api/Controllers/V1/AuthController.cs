@@ -23,7 +23,7 @@ public class AuthController(IAuthenticationService authService) : ApiControllerV
     [HttpPost("register")]
     public async Task<ActionResult> Register(RegisterRequest registerRequest)
     {
-        var (email, lastName, firstName, middleName, phone, professionId, password) = registerRequest;
+        var (email, lastName, firstName, middleName, phone, professionId, roleId, divisionId, password) = registerRequest;
         
         var result = await authService.RegisterAsync(
             email, 
@@ -32,6 +32,8 @@ public class AuthController(IAuthenticationService authService) : ApiControllerV
             middleName,
             phone,
             professionId,
+            roleId,
+            divisionId,
             password);
         
         return Ok(result);

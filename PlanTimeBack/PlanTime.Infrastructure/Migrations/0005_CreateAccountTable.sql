@@ -25,7 +25,3 @@ ALTER TABLE account
 ALTER TABLE account
     ADD FOREIGN KEY(division_id) REFERENCES division(id)
         ON UPDATE NO ACTION ON DELETE NO ACTION;
-
-ALTER TABLE account
-    ADD FOREIGN KEY(vacation_id) REFERENCES vacation(id)
-        ON UPDATE NO ACTION ON DELETE NO ACTION;
