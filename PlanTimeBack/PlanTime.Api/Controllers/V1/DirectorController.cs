@@ -8,16 +8,14 @@ using PlanTime.Models.Vacations;
 
 namespace PlanTime.Api.Controllers.V1;
 
-[Route("api/[controller]")]
-public class DirectorController : ApiControllerV1
+[AllowAnonymous]
+public class DirectorController(IVacationService vacationService) : ApiControllerV1
 {
-    private readonly IVacationService _vacationService;
-
-    [Authorize]
+    //[Authorize]
     [HttpGet("vacations/export")]
     public async Task<IActionResult> ExportVacationsToExcel()
     {
-        var vacations = await _vacationService.GetAllVacationInfoAsync();
+        var vacations = await vacationService.GetAllVacationInfoAsync();
 
         // Генерация Excel-файлов в памяти
         var files = GenerateExcelFiles(vacations);
