@@ -5,7 +5,10 @@ SELECT id                   AS Id,
        first_name           AS FirstName,
        middle_name          AS MiddleName,
        phone                AS Phone,
+       count_vacation_days  AS CountVacationDays,
        profession_id        AS ProfessionId,
-       role_id              AS RoleId
+       role_id              AS RoleId,
+       division_id          AS DivisionId,
+       vacation_id          AS VacationId
 FROM account
 WHERE id = @id;

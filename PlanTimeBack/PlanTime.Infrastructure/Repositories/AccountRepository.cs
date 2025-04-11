@@ -11,7 +11,7 @@ public class AccountRepository(IDapperContext<IDapperSettings> dapperContext) : 
 {
     public async Task<DbAccount> GetByIdAsync(int id)
     {
-        return await dapperContext.FirstOrDefault<DbAccount>(new QueryObject(User.Create, new { id }));
+        return await dapperContext.FirstOrDefault<DbAccount>(new QueryObject(User.GetById, new { id }));
     }
 
     public async Task<DbAccount> CreateAsync(DbAccount dbAccount)
@@ -21,7 +21,7 @@ public class AccountRepository(IDapperContext<IDapperSettings> dapperContext) : 
 
     public async Task<DbAccount> UpdateAsync(DbAccount dbAccount, int id)
     {
-        return await dapperContext.CommandWithResponse<DbAccount>(new QueryObject(User.Create, dbAccount));
+        return await dapperContext.CommandWithResponse<DbAccount>(new QueryObject(User.Update, dbAccount));
     }
 
     public async Task RemoveAsync(int id)
@@ -31,16 +31,16 @@ public class AccountRepository(IDapperContext<IDapperSettings> dapperContext) : 
 
     public async Task<bool> ExistsByEmailAsync(string email)
     {
-        return await dapperContext.CommandWithResponse<bool>(new QueryObject(User.Create, new { email }));
+        return await dapperContext.CommandWithResponse<bool>(new QueryObject(User.ExistsByEmail, new { email }));
     }
 
     public async Task<bool> ExistsByIdAsync(int id)
     {
-        return await dapperContext.CommandWithResponse<bool>(new QueryObject(User.Create, new { id }));
+        return await dapperContext.CommandWithResponse<bool>(new QueryObject(User.ExistsById, new { id }));
     }
 
     public async Task<DbAccount> GetByEmailAsync(string email)
     {
-        return await dapperContext.FirstOrDefault<DbAccount>(new QueryObject(User.Create, new { email }));
+        return await dapperContext.FirstOrDefault<DbAccount>(new QueryObject(User.GetByEmail, new { email }));
     }
 }

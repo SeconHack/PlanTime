@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PlanTime.Infrastructure.Repositories.Scripts.Profession {
+namespace PlanTime.Infrastructure.Repositories.Scripts.Vacation {
     using System;
     
     
@@ -21,14 +21,14 @@ namespace PlanTime.Infrastructure.Repositories.Scripts.Profession {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Profession {
+    internal class Vacation {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Profession() {
+        internal Vacation() {
         }
         
         /// <summary>
@@ -38,7 +38,7 @@ namespace PlanTime.Infrastructure.Repositories.Scripts.Profession {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PlanTime.Infrastructure.Repositories.Scripts.Profession.Profession", typeof(Profession).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PlanTime.Infrastructure.Repositories.Scripts.Vacation.Vacation", typeof(Vacation).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -60,9 +60,9 @@ namespace PlanTime.Infrastructure.Repositories.Scripts.Profession {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to INSERT INTO profession (profession_name, count_vacation_days, count_interchangeable)
-        ///VALUES (@ProfessionName, @CountVacationDays, @CountInterchangeable)
-        ///RETURNING id, profession_name, count_vacation_days, count_interchangeable;.
+        ///   Looks up a localized string similar to INSERT INTO vacation (start_date, end_date)
+        ///VALUES (@StartDate, @EndDate)
+        ///RETURNING id, start_date, end_date;.
         /// </summary>
         internal static string Create {
             get {
@@ -71,7 +71,7 @@ namespace PlanTime.Infrastructure.Repositories.Scripts.Profession {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT * FROM profession;.
+        ///   Looks up a localized string similar to SELECT * FROM vacation;.
         /// </summary>
         internal static string GetAll {
             get {
@@ -81,10 +81,9 @@ namespace PlanTime.Infrastructure.Repositories.Scripts.Profession {
         
         /// <summary>
         ///   Looks up a localized string similar to SELECT id                       AS Id,
-        ///       profession_name          AS ProfessionName,
-        ///       count_vacation_days      AS CountVacationDays,
-        ///       count_interchangeable    AS CountInterchangeable
-        ///FROM profession
+        ///       start_date               AS StartDate,
+        ///       end_date                 AS EndDate,
+        ///FROM vacation
         ///WHERE id = @Id;.
         /// </summary>
         internal static string GetById {

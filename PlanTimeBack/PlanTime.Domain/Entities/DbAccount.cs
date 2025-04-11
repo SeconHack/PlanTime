@@ -54,4 +54,14 @@ public class DbAccount
     /// Получает или задает идентификатор роли пользователя.
     /// </summary>
     public int RoleId { get; set; }
+    
+    /// <summary>
+    /// Получает или задает идентификатор подразделения пользователя.
+    /// </summary>
+    public int DivisionId { get; set; }
+    
+    /// <summary>
+    /// Получает или задает идентификатор периода отпуска пользователя.
+    /// </summary>
+    public List<int> VacationId { get; set; }
 }

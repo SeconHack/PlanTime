@@ -1,4 +1,5 @@
 CREATE TABLE role (
-                      id SERIAL PRIMARY KEY,
-                      role TEXT NOT NULL
+                        id SERIAL NOT NULL UNIQUE,
+                        role_name TEXT,
+                        PRIMARY KEY(id)
 );

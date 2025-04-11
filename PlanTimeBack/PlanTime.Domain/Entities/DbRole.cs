@@ -13,5 +13,5 @@ public class DbRole
     /// <summary>
     /// Получает или задает роль учетной записи.
     /// </summary>
-    public string Role { get; set; }
+    public string RoleName { get; set; }
 }

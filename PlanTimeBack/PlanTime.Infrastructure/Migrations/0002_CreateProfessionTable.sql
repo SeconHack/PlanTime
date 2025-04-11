@@ -1,4 +1,7 @@
 CREATE TABLE profession (
-                            id SERIAL PRIMARY KEY,
-                            profession_name TEXT NOT NULL
+                              id SERIAL NOT NULL UNIQUE,
+                              profession_name TEXT,
+                              count_vacation_days INTEGER,
+                              count_interchangeable INTEGER,
+                              PRIMARY KEY(id)
 );

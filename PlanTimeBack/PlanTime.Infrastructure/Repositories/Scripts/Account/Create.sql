@@ -1,3 +1,33 @@
-INSERT INTO account (email, hashed_password, last_name, first_name, middle_name, phone, profession_id, role_id)
-VALUES (@Email, @HashedPassword, @LastName, @FirstName, @MiddleName, @Phone, @ProfessionId, @RoleId)
-RETURNING id, email, hashed_password, last_name, first_name, middle_name, phone, profession_id, role_id;
+INSERT INTO account (email,
+                     hashed_password,
+                     last_name, first_name,
+                     middle_name,
+                     phone,
+                     count_vacation_days,
+                     profession_id,
+                     role_id,
+                     division_id,
+                     vacation_id)
+VALUES (@Email,
+        @HashedPassword,
+        @LastName,
+        @FirstName,
+        @MiddleName,
+        @Phone,
+        @CountVacationDays,
+        @ProfessionId,
+        @RoleId,
+        @DivisionId,
+        @VacationId)
+RETURNING id,
+            email,
+            hashed_password,
+            last_name,
+            first_name,
+            middle_name,
+            phone,
+            count_vacation_days,
+            profession_id,
+            role_id,
+            division_id,
+            vacation_id;

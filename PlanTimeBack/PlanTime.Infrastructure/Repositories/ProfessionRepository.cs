@@ -16,11 +16,11 @@ public class ProfessionRepository(IDapperContext<IDapperSettings> dapperContext)
 
     public async Task<List<DbProfession>> GetAllAsync()
     {
-        return await dapperContext.ListOrEmpty<DbProfession>(new QueryObject(Profession.Create));
+        return await dapperContext.ListOrEmpty<DbProfession>(new QueryObject(Profession.GetAll));
     }
 
     public async Task<DbProfession> GetByIdAsync(int id)
     {
-        return await dapperContext.FirstOrDefault<DbProfession>(new QueryObject(Profession.Create, new { id }));
+        return await dapperContext.FirstOrDefault<DbProfession>(new QueryObject(Profession.GetById, new { id }));
     }
 }

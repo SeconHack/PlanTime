@@ -16,11 +16,11 @@ public class RoleRepository(IDapperContext<IDapperSettings> dapperContext) : IRo
 
     public async Task<List<DbRole>> GetAllAsync()
     {
-        return await dapperContext.ListOrEmpty<DbRole>(new QueryObject(Role.Create));
+        return await dapperContext.ListOrEmpty<DbRole>(new QueryObject(Role.GetAll));
     }
 
     public async Task<DbRole> GetByIdAsync(int id)
     {
-        return await dapperContext.FirstOrDefault<DbRole>(new QueryObject(Role.Create, new { id }));
+        return await dapperContext.FirstOrDefault<DbRole>(new QueryObject(Role.GetById, new { id }));
     }
 }
