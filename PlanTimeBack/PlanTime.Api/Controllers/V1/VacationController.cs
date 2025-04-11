@@ -8,7 +8,7 @@ namespace PlanTime.Api.Controllers.V1;
 
 public class VacationController(IVacationService vacationService) : ApiControllerV1
 {
-    
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult> Create(CreateVacationRequest model)
     {
@@ -16,14 +16,14 @@ public class VacationController(IVacationService vacationService) : ApiControlle
         var result = await vacationService.Create(UserId,model);
         return Ok(result);
     }
-
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         var result = await vacationService.GetAll();
         return Ok(result);
     }
-
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
