@@ -14,4 +14,8 @@
       <ProjectReference Include="..\PlanTime.Models\PlanTime.Models.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="ClosedXML" Version="0.105.0-rc" />
+    </ItemGroup>
+
 </Project>

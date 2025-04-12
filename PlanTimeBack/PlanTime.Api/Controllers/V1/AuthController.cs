@@ -49,12 +49,6 @@ public class AuthController(
         return Ok(result);
     }
 
-    [HttpGet("getAll")]
-    public async Task<IActionResult> GetAll()
-    {
-        var result = await vacationService.GetAllVacationInfoAsync();
-        return Ok(result);
-    }
 
     [HttpPost("registerFromFile")]
     //[Authorize(Roles = "Leader,Director")]

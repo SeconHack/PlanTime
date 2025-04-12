@@ -11,7 +11,7 @@ public class VacationService(
     IVacationRepository vacationRepository,
     IDivisionRepository divisionRepository) : IVacationService
 {
-    public async Task<List<VacationInfo>> GetAllVacationInfoAsync()
+    public async Task<List<VacationInfo>> GetVacationInfoByDivisionIdAsync(int divisionId)
     {
         var vacations = await vacationRepository.GetAllAsync();
         var allVacationInfo = new List<VacationInfo>();
@@ -19,11 +19,13 @@ public class VacationService(
         foreach (var vacation in vacations)
         {
             var user = await accountRepository.GetByIdAsync(vacation.UserId);
+            if(user.DivisionId != divisionId)continue;
             var division = await divisionRepository.GetByIdAsync(user.DivisionId);
             var divisionName = division.DivisionName;
             allVacationInfo.Add(new VacationInfo(
                 vacation.UserId,
-                user.LastName,
+                vacation.Id,
+                user.Email,
                 divisionName,
                 vacation.StartDate,
                 vacation.EndDate
@@ -89,7 +91,7 @@ public class VacationService(
         return vacations;
     }
 
-    public async Task<DbVacation> GetById(int id)
+    public async Task<List<DbVacation>> GetById(int id)
     {
         var vacation = await vacationRepository.GetByIdAsync(id);
         return vacation;
