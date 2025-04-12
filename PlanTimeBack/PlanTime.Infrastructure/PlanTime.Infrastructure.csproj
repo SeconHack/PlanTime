@@ -11,6 +11,7 @@
     <ItemGroup>
       <PackageReference Include="Dapper" Version="2.1.66" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
+      <PackageReference Include="Minio" Version="6.0.4" />
       <PackageReference Include="Npgsql" Version="9.0.3" />
     </ItemGroup>
 
@@ -21,6 +22,10 @@
         </EmbeddedResource>
         <None Remove="Migrations\0001_CreateRoleTable.sql"/>
         <EmbeddedResource Include="Migrations\0001_CreateRoleTable.sql"/>
+        <EmbeddedResource Update="Repositories\Scripts\Communications\Communications.resx">
+          <Generator>ResXFileCodeGenerator</Generator>
+          <LastGenOutput>Communications.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
@@ -35,7 +40,7 @@
     <ItemGroup>
         <EmbeddedResource Update="Repositories\Scripts\Division\Division.resx">
             <Generator>ResXFileCodeGenerator</Generator>
-            <LastGenOutput>Vacation.Designer.cs</LastGenOutput>
+            <LastGenOutput>Division.Designer.cs</LastGenOutput>
         </EmbeddedResource>
         <None Remove="Migrations\0003_CreateDivisionTable.sql"/>
         <EmbeddedResource Include="Migrations\0003_CreateDivisionTable.sql"/>
@@ -44,7 +49,7 @@
     <ItemGroup>
         <EmbeddedResource Update="Repositories\Scripts\Account\Account.resx">
             <Generator>ResXFileCodeGenerator</Generator>
-            <LastGenOutput>Division.Designer.cs</LastGenOutput>
+            <LastGenOutput>Account.Designer.cs</LastGenOutput>
         </EmbeddedResource>
         <None Remove="Migrations\0004_CreateAccountTable.sql"/>
         <EmbeddedResource Include="Migrations\0004_CreateAccountTable.sql"/>
@@ -53,14 +58,31 @@
     <ItemGroup>
         <EmbeddedResource Update="Repositories\Scripts\Vacation\Vacation.resx">
             <Generator>ResXFileCodeGenerator</Generator>
-            <LastGenOutput>Account.Designer.cs</LastGenOutput>
+            <LastGenOutput>Vacation.Designer.cs</LastGenOutput>
         </EmbeddedResource >
         <None Remove="Migrations\0005_CreateVacationTable.sql"/>
         <EmbeddedResource Include="Migrations\0005_CreateVacationTable.sql"/>
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Update="Repositories\Scripts\Communications\Communications.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>Communications.Designer.cs</LastGenOutput>
+        </EmbeddedResource >
+        <None Remove="Migrations\0006_CreateСommunicationsTable.sql"/>
+        <EmbeddedResource Include="Migrations\0006_CreateСommunicationsTable.sql"/>
+    </ItemGroup>
+    
+    <ItemGroup>
       <ProjectReference Include="..\PlanTime.Domain\PlanTime.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Repositories\Scripts\Communications\Communications.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Communications.resx</DependentUpon>
+      </Compile>
     </ItemGroup>
 
 </Project>

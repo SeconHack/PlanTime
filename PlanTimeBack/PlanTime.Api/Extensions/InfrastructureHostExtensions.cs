@@ -2,6 +2,7 @@
 using DbUp;
 using Durak.Dapper;
 using Durak.Dapper.Interfaces;
+using Minio;
 using PlanTime.Domain.Repositories;
 using PlanTime.Infrastructure.Factories;
 using PlanTime.Infrastructure.Factories.Interfaces;
@@ -20,8 +21,6 @@ public static class InfrastructureHostExtensions
     /// <summary>
     /// Выполняет миграцию базы данных для указанного контекста.
     /// </summary>
-    /// <typeparam name="TContext">Тип контекста базы данных, наследуемый от DbContext.</typeparam>
-    /// <param name="host">Экземпляр IHost, используемый для получения сервисов.</param>
     public static IServiceCollection MigrateDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration["UserServiceDataBase:ConnectionString"];
@@ -45,11 +44,28 @@ public static class InfrastructureHostExtensions
         return services;
     }
     
+    /// <summary>
+    /// Подключение Даппера.
+    /// </summary>
     public static IServiceCollection AddDapper(this IServiceCollection services)
     {
         return services
             .AddSingleton<IDapperSettings, UserServiceDatabase>()
             .AddSingleton<IDapperContext<IDapperSettings>, DapperContext<IDapperSettings>>();
+    }
+    
+    /// <summary>
+    /// Подключение хранилища файлов.
+    /// </summary>
+    public static IServiceCollection AddMinio(this IServiceCollection services)
+    {
+        return services
+            .AddSingleton<IMinioClient>(provider =>
+                new MinioClient()
+                    .WithEndpoint("minio:9000")
+                    .WithCredentials("minioadmin", "minioadmin")
+                    .WithSSL(false)
+                    .Build());
     }
 
     /// <summary>
@@ -66,6 +82,7 @@ public static class InfrastructureHostExtensions
         services.AddScoped<IProfessionRepository, ProfessionRepository>();
         services.AddScoped<IVacationRepository, VacationRepository>();
         services.AddScoped<IDivisionRepository, DivisionRepository>();
+        services.AddScoped<IMinioRepository, MinioRepository>();
 
     }
 }

@@ -24,5 +24,6 @@ public static class ApplicationHostExtensions
         services.AddScoped<IVacationService, VacationService>();
         services.AddScoped<IDivisionService, DivisionService>();
         services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IRecordService, RecordService>();
     }
 }
