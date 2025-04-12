@@ -16,6 +16,7 @@ public class DivisionController(IDivisionService divisionService) : ApiControlle
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var result = await divisionService.GetAll();

@@ -18,6 +18,7 @@ public class ProfessionController(IProfessionService professionService) : ApiCon
     }
     
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var result = await professionService.GetAll();

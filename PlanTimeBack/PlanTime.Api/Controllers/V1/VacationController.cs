@@ -15,8 +15,9 @@ public class VacationController(IVacationService vacationService) : ApiControlle
         var result = await vacationService.Create(UserId,model);
         return Ok(result);
     }
-    [Authorize]
+    
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var result = await vacationService.GetAll();

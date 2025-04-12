@@ -10,7 +10,7 @@ namespace PlanTime.Application.Services;
 public class AuthenticationService(
     IAccountService accountService,
     IRoleService roleService,
-    IDivisionService divisionService,
+    IProfessionService professionService,
     IPasswordHasher passwordHasher,
     IJwtTokenService jwtService) : IAuthenticationService
 {
@@ -27,7 +27,7 @@ public class AuthenticationService(
     {
         var hashedPassword = passwordHasher.Hash(password);
         var role = await roleService.GetById(roleId);
-        var div = await divisionService.GetById(divisionId);
+        var profession = await professionService.GetById(divisionId);
         var roleName = role.RoleName;
         var candidate = await accountService.CreateAsync(new AccountDto
         {
@@ -38,6 +38,9 @@ public class AuthenticationService(
             Phone = phone,
             HashedPassword = hashedPassword,
             DivisionId = divisionId,
+            CountVacationDays = profession.CountVacationDays,
+            RoleId = roleId,
+            ProfessionId = professionId
         });
 
         var token = await jwtService.CreateAccessTokenAsync(new List<Claim>

@@ -1,6 +1,5 @@
 SELECT id                   AS Id,
        email                AS Email,
-       hashed_password      AS HashedPassword,
        last_name            AS LastName,
        first_name           AS FirstName,
        middle_name          AS MiddleName,
