@@ -8,14 +8,10 @@ namespace PlanTime.Application.Services;
 public class ReportService(IAccountRepository accountRepository,
     IDivisionRepository divisionRepository,
     IMinioRepository minioRepository,
-    VacationService vacationService) :IReportService
+    IVacationService vacationService) :IReportService
 {
     private (string fileName, MemoryStream content) GenerateExcelFile(string divisionName,List<VacationInfo> vacations)
     {
-        var grouped = vacations;
-
-        
-        var result = new List<(string, MemoryStream)>();
         var stream = new MemoryStream();
         using (var workbook = new XLWorkbook())
         {
@@ -49,7 +45,21 @@ public class ReportService(IAccountRepository accountRepository,
         
         return ($"Подразделение {safeFileName}.xlsx", stream);
     }
-    
+
+    public async Task<List<List<VacationInfo>>> GetIntersectionsAsync(int userId)
+    {
+        var user = await accountRepository.GetByIdAsync(userId);
+        var vacations = await vacationService.GetVacationInfoByDivisionIdAsync(user.DivisionId);
+        List<List<VacationInfo>> result = new List<List<VacationInfo>>();
+        
+        while (vacations.Count > 0)
+        {
+            var divisionName = vacations[0].DivisionName;
+            result.Add(vacations.Where(v=>v.DivisionName==divisionName).ToList());
+            vacations.RemoveAll(v => v.DivisionName==divisionName);
+        }
+        return result;
+    }
     public async Task<(int,string)> SaveReportAsync(int userId)
     {
         var user = await accountRepository.GetByIdAsync(userId);
@@ -59,6 +69,7 @@ public class ReportService(IAccountRepository accountRepository,
         {
             return (1,"Нет данных об отпусках для экспорта.");
         }
+        
 
         var (fileName, stream) = GenerateExcelFile(division.DivisionName, vacations);
         const string bucketName = "vacations";

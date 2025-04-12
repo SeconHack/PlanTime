@@ -13,11 +13,8 @@ namespace PlanTime.Api.Controllers.V1;
 [Route("api/[controller]")]
 public class ReportController(
     IVacationService vacationService,
-    IRecordService recordService,
     IMinioRepository minioRepository,
     IAccountRepository accountRepository,
-    IDivisionRepository divisionRepository,
-    IVacationRepository vacationRepository,
     IProfessionService professionService,
     IReportService reportService) : ApiControllerV1
 {
@@ -29,7 +26,12 @@ public class ReportController(
             return BadRequest(message);
         return Ok("Файл сохранён");
     }
-
+    [HttpGet("vacations/intersections")]
+    public async Task<List<List<VacationInfo>>> GetInterSections()
+    {
+        var res = await reportService.GetIntersectionsAsync(UserId);
+        return res;
+    }
     [HttpDelete("vacations/{vocationId}")]
     public async Task<IActionResult> DeleteVocationWithInfo(int vocationId)
     {
