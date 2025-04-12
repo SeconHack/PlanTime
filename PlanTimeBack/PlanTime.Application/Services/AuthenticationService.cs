@@ -27,7 +27,7 @@ public class AuthenticationService(
     {
         var hashedPassword = passwordHasher.Hash(password);
         var role = await roleService.GetById(roleId);
-        var profession = await professionService.GetById(divisionId);
+        var profession = await professionService.GetById(professionId);
         var roleName = role.RoleName;
         var candidate = await accountService.CreateAsync(new AccountDto
         {
