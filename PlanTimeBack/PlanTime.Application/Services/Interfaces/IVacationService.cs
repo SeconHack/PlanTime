@@ -5,8 +5,8 @@ namespace PlanTime.Application.Services.Interfaces;
 
 public interface IVacationService
 {
-    Task<List<VacationInfo>> GetAllVacationInfoAsync();
+    Task<List<VacationInfo>> GetVacationInfoByDivisionIdAsync(int userId);
     Task<DbVacation> Create(int UserId, CreateVacationRequest model);
     Task<List<DbVacation>> GetAll();
-    Task<DbVacation> GetById( int id );
+    Task<List<DbVacation>> GetById( int id );
 }

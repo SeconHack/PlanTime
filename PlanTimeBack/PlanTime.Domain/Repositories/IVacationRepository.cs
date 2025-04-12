@@ -20,5 +20,10 @@ public interface IVacationRepository
     /// <summary>
     /// Получает период отпуска по идентификатору.
     /// </summary>
-    Task<DbVacation> GetByIdAsync(int id);
+    Task<List<DbVacation>> GetByIdAsync(int id);
+    
+    /// <summary>
+    /// Удаляет период отпуска по идентификатору.
+    /// </summary>
+    Task DeleteAsync(int id);
 }

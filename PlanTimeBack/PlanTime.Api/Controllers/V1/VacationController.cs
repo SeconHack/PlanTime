@@ -9,7 +9,7 @@ namespace PlanTime.Api.Controllers.V1;
 public class VacationController(IVacationService vacationService) : ApiControllerV1
 {
     [HttpPost]
-    [Authorize(Roles = "Leader,Director")]
+    [Authorize]
     public async Task<ActionResult> Create(CreateVacationRequest model)
     {
         var result = await vacationService.Create(UserId,model);
@@ -17,7 +17,7 @@ public class VacationController(IVacationService vacationService) : ApiControlle
     }
 
     [HttpGet]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<IActionResult> GetAll()
     {
         var result = await vacationService.GetAll();

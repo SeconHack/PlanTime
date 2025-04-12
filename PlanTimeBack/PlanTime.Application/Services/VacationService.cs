@@ -11,7 +11,7 @@ public class VacationService(
     IVacationRepository vacationRepository,
     IDivisionRepository divisionRepository) : IVacationService
 {
-    public async Task<List<VacationInfo>> GetAllVacationInfoAsync()
+    public async Task<List<VacationInfo>> GetVacationInfoByDivisionIdAsync(int divisionId)
     {
         var vacations = await vacationRepository.GetAllAsync();
         var allVacationInfo = new List<VacationInfo>();
@@ -19,11 +19,13 @@ public class VacationService(
         foreach (var vacation in vacations)
         {
             var user = await accountRepository.GetByIdAsync(vacation.UserId);
+            if(user.DivisionId != divisionId)continue;
             var division = await divisionRepository.GetByIdAsync(user.DivisionId);
             var divisionName = division.DivisionName;
             allVacationInfo.Add(new VacationInfo(
                 vacation.UserId,
-                user.LastName,
+                vacation.Id,
+                user.Email,
                 divisionName,
                 vacation.StartDate,
                 vacation.EndDate
@@ -40,10 +42,6 @@ public class VacationService(
         var vacations = await vacationRepository.GetAllAsync();
         var yearNow = DateTime.Now.Year;
         
-        var count  = vacations.Count(v => 
-            v.UserId == userId &&
-            (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow));
-        
         var myVacations = vacations.FindAll(v => v.UserId == userId && 
                                                 (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow));
 
@@ -59,10 +57,14 @@ public class VacationService(
             }
         }
         
-        if(model.EndDate < model.StartDate + TimeSpan.FromDays(14) && count == 0)
+        var account = await accountRepository.GetByIdAsync(userId);
+        /*var count  = vacations.Count(v => 
+            v.UserId == userId &&
+            (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow));*/
+        
+        if(model.EndDate < model.StartDate + TimeSpan.FromDays(14) && account.CountVacationDays <= 14)
             throw BadDateException.BadDateCountDate(model.StartDate, model.EndDate);
         
-        var account = await accountRepository.GetByIdAsync(userId);
         var vacationDate = (int)(model.EndDate - model.StartDate).TotalDays;
         
         if(account.CountVacationDays < vacationDate)
@@ -89,7 +91,7 @@ public class VacationService(
         return vacations;
     }
 
-    public async Task<DbVacation> GetById(int id)
+    public async Task<List<DbVacation>> GetById(int id)
     {
         var vacation = await vacationRepository.GetByIdAsync(id);
         return vacation;
