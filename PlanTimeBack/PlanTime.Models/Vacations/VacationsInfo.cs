@@ -13,7 +13,7 @@ public class VacationInfo
     {
         UserId = userid;
         VacationId = vacationId;
-        email = email;
+        Email = email;
         DivisionName = divisionName;
         VacationStartDate = startDate;
         VacationEndDate = endDate;
