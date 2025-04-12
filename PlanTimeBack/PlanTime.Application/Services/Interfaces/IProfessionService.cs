@@ -9,4 +9,6 @@ public interface IProfessionService
     Task<DbProfession> Create(CreateProfessionRequest model);
     Task<List<DbProfession>> GetAll();
     Task<DbProfession> GetById(int id);
+    Task<int?> GetIdByNameAsync(string name);
+
 }

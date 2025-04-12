@@ -45,4 +45,9 @@ public class AccountService(IAccountRepository repository) : IAccountService
 
         return candidate.ToDto();
     }
+    
+    public async Task<bool> ExistsByEmailAsync(string email)
+    {
+        return await repository.ExistsByEmailAsync(email);
+    }
 }

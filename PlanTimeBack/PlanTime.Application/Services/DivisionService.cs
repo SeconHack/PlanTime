@@ -29,4 +29,11 @@ public class DivisionService(IDivisionRepository divisionRepository) : IDivision
         var divisions = await divisionRepository.GetAllAsync();
         return divisions;
     }
+
+    public async Task<int?> GetIdByNameAsync(string name)
+    {
+        var divisions = await divisionRepository.GetAllAsync();
+        var division = divisions.FirstOrDefault(d => d.DivisionName == name);
+        return division?.Id;
+    }
 }
