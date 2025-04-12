@@ -56,4 +56,16 @@ public class MinioRepository(IMinioClient minioClient) : IMinioRepository
         stream.Position = 0;
         return stream;
     }
+
+    public async Task UploadToFolderAsync(string bucketName, string folderName, string fileName, Stream data, long size, string contentType)
+    {
+        var objectName = $"{folderName.TrimEnd('/')}/{fileName}";
+
+        await minioClient.PutObjectAsync(new PutObjectArgs()
+            .WithBucket(bucketName)
+            .WithObject(objectName)
+            .WithStreamData(data)
+            .WithObjectSize(size)
+            .WithContentType(contentType));
+    }
 }

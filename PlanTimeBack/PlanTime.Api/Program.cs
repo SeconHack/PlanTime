@@ -27,7 +27,6 @@ builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 builder.Services.AddScoped<IVacationService, VacationService>();
 var app = builder.Build();
 
-
 app.UseSwagger();
 app.UseSwaggerUI();
 
