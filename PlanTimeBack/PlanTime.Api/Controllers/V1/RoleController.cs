@@ -5,7 +5,6 @@ using PlanTime.Application.Services.Interfaces;
 
 namespace PlanTime.Api.Controllers.V1;
 
-[AllowAnonymous]
 public class RoleController(IRoleService roleService) : ApiControllerV1
 {
     [HttpPost("{name}")]
@@ -16,6 +15,7 @@ public class RoleController(IRoleService roleService) : ApiControllerV1
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var result = await roleService.GetAll();

@@ -45,7 +45,19 @@ public class AccountService(IAccountRepository repository) : IAccountService
 
         return candidate.ToDto();
     }
-    
+
+    public async Task<List<AccountDto>> GetAllAsync()
+    {
+        var candidates = await repository.GetAllAsync();
+        var candidateDto = new List<AccountDto>(candidates.Count);
+        foreach (var candidate in candidates)
+        {
+            candidateDto.Add(candidate.ToDto());    
+        }
+
+        return candidateDto;
+    }
+
     public async Task<bool> ExistsByEmailAsync(string email)
     {
         return await repository.ExistsByEmailAsync(email);

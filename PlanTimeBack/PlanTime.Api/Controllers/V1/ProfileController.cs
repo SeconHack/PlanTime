@@ -19,4 +19,11 @@ public class ProfileController(IAccountService accountService) : ApiControllerV1
         var result = await accountService.GetByIdAsync(UserId);
         return Ok(result);
     }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAll()
+    {
+        return Ok(await accountService.GetAllAsync());
+    }
 }

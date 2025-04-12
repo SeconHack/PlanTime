@@ -28,6 +28,7 @@ public static class AccountMapper
                 RoleId = account.RoleId,
                 ProfessionId = account.ProfessionId,
                 HashedPassword = account.HashedPassword,
+                DivisionId = account.DivisionId
             };
     }
 }

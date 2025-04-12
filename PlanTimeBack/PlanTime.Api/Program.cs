@@ -25,8 +25,19 @@ builder.Services.AddApplication();
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 builder.Services.AddScoped<IVacationService, VacationService>();
-var app = builder.Build();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost5173",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
+var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -34,6 +45,7 @@ app.UseSwaggerUI();
 app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+app.UseCors("AllowLocalhost5173");
 app.MapControllers();
 
 app.Run();
