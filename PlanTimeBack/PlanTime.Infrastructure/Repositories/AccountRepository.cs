@@ -19,9 +19,9 @@ public class AccountRepository(IDapperContext<IDapperSettings> dapperContext) : 
         return await dapperContext.CommandWithResponse<DbAccount>(new QueryObject(User.Create, dbAccount));
     }
 
-    public async Task<DbAccount> UpdateAsync(DbAccount dbAccount, int id)
+    public async Task UpdateAsync(DbAccount dbAccount, int id)
     {
-        return await dapperContext.CommandWithResponse<DbAccount>(new QueryObject(User.Update, dbAccount));
+        await dapperContext.Command(new QueryObject(User.Update, dbAccount));
     }
 
     public async Task RemoveAsync(int id)

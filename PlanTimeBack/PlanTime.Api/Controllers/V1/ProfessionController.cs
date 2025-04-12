@@ -10,6 +10,7 @@ namespace PlanTime.Api.Controllers.V1;
 public class ProfessionController(IProfessionService professionService) : ApiControllerV1
 {
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create(CreateProfessionRequest createProfessionRequest)
     {
         var result = await professionService.Create(createProfessionRequest);

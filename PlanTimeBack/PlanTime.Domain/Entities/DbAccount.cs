@@ -43,7 +43,7 @@ public class DbAccount
     /// <summary>
     /// Количество дней отпуска.
     /// </summary>
-    public int CountVacationDays { get; set; } = 28;
+    public int CountVacationDays { get; set; }
 
     /// <summary>
     /// Получает или задает идентификатор профессии пользователя.

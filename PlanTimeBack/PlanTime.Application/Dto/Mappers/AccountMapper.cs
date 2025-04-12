@@ -24,6 +24,7 @@ public static class AccountMapper
                 FirstName = account.FirstName,
                 MiddleName = account.MiddleName,
                 Phone = account.Phone,
+                CountVacationDays = account.CountVacationDays,
                 RoleId = account.RoleId,
                 ProfessionId = account.ProfessionId,
                 HashedPassword = account.HashedPassword,

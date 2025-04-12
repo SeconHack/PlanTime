@@ -37,11 +37,17 @@ public class AccountService(IAccountRepository repository) : IAccountService
             FirstName = dto.FirstName,
             MiddleName = dto.MiddleName,
             Phone = dto.Phone,
+            CountVacationDays = dto.CountVacationDays,
             RoleId = dto.RoleId,
             DivisionId = dto.DivisionId,
             ProfessionId = dto.ProfessionId
         });
 
         return candidate.ToDto();
+    }
+    
+    public async Task<bool> ExistsByEmailAsync(string email)
+    {
+        return await repository.ExistsByEmailAsync(email);
     }
 }

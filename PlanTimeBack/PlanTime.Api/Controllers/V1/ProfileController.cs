@@ -16,6 +16,7 @@ public class ProfileController(IAccountService accountService) : ApiControllerV1
     [HttpGet("me")]
     public async Task<IActionResult> GetProfile()
     {
-        return Ok(await accountService.GetByIdAsync(UserId));
+        var result = await accountService.GetByIdAsync(UserId);
+        return Ok(result);
     }
 }
