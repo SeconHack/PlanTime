@@ -22,6 +22,7 @@ public class VacationService(
             var division = await divisionRepository.GetByIdAsync(user.DivisionId);
             var divisionName = division.DivisionName;
             allVacationInfo.Add(new VacationInfo(
+                vacation.UserId,
                 user.LastName,
                 divisionName,
                 vacation.StartDate,
