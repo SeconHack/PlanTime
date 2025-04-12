@@ -61,10 +61,12 @@ public static class InfrastructureHostExtensions
     {
         return services.AddCors(options =>
         {
-            options.AddPolicy("AllowLocalhost5173",
+            options.AddPolicy("AllowLocalhostAndOtherUrls",
                 policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins("http://localhost:5173",
+                            "http://109.73.203.81:5173",
+                            "https://109.73.203.81:5173")
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
