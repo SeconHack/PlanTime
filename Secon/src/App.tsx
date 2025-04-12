@@ -2,6 +2,7 @@ import Login from './pages/Login';
 import MainPage from './pages/MainPage'
 import PersonalData from './pages/PersonalData';
 import Registration from './pages/Registration';
+import AdminPage from "./pages/AdminPage.tsx";
 
 import {
   BrowserRouter as Router,
@@ -38,6 +39,10 @@ function App() {
                     element={<MainPage/>}
                 />
 
+                <Route
+                    path="/AdminPage"
+                    element={<AdminPage/>}
+                />
                 {/* <Route
                     path='/Posts/:id'
                     element={<Post_inside/>}    

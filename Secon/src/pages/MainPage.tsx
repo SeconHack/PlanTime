@@ -1,7 +1,11 @@
 import logo from '../images/logo.png';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Для навигации
 
 const MainPage = () => {
+    const navigate = useNavigate(); // Хук для навигации
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false); // Состояние для выпадающего меню профиля
+
     // Состояние для текущего месяца (0 - Январь, 1 - Февраль и т.д.)
     const [currentMonth, setCurrentMonth] = useState(1); // Начинаем с февраля
 
@@ -192,16 +196,48 @@ const MainPage = () => {
         );
     }
 
+    // Обработка клика по логотипу
+    const handleLogoClick = () => {
+        window.location.href = 'https://penza.tns-e.ru/population/'; // Перенаправление на сайт
+    };
+
+    // Обработка выхода
+    const handleLogout = () => {
+        alert('Выход из профиля');
+        // Здесь можно добавить реальную логику выхода, например, очистку токена или редирект на страницу логина
+        navigate('/login'); // Предполагаемый маршрут для страницы логина
+    };
+
     return (
         <>
             <header className="flex justify-between items-center p-[1rem] bg-white">
-                <img src={logo} alt="Logo" />
-                <div className="rounded-[6px] w-[232px] h-[40px] border-[2px] pt-[7px] pl-[20px] bg-white font-[Montserrat] text-[#023973] font-semibold">
-                    Профиль
+                <img
+                    src={logo}
+                    alt="Logo"
+                    className="cursor-pointer"
+                    onClick={handleLogoClick}
+                />
+                <div className="relative">
+                    <div
+                        className="rounded-[6px] w-[232px] h-[40px] border-[2px] pt-[7px] pl-[20px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer"
+                        onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    >
+                        Профиль
+                    </div>
+                    {isProfileMenuOpen && (
+                        <div className="absolute right-0 mt-2 w-[232px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg">
+                            <button
+                                onClick={handleLogout}
+                                className="w-full text-left px-4 py-2 font-[Montserrat] text-[#023973] hover:bg-gray-100"
+                            >
+                                Выйти
+                            </button>
+                        </div>
+                    )}
                 </div>
             </header>
             <section className="h-screen bg-[#FDE0B5] flex items-center justify-center">
-                <div className="box-border flex items-start justify-between min-w-[1128px] bg-white border-[15px] pt-[60px]">
+                <div className="box-border flex items-start justify-between min-w-[1128px] bg-white pt-[60px]">
                     {/* Календарь */}
                     <div className="box-border flex flex-col items-stretch justify-start w-[872px] pb-[128px]">
                         <div className="flex items-center justify-center space-x-[20px]">
