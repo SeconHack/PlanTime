@@ -8,7 +8,7 @@ namespace PlanTime.Api.Controllers.V1;
 public class DivisionController(IDivisionService divisionService) : ApiControllerV1
 {
     [HttpPost("{name}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Leader,Director")]
     public async Task<IActionResult> Create(string name)
     {
         var result = await divisionService.Create(name);
@@ -24,6 +24,7 @@ public class DivisionController(IDivisionService divisionService) : ApiControlle
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await divisionService.GetById(id);

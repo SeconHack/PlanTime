@@ -8,12 +8,14 @@ namespace PlanTime.Api.Controllers.V1;
 public class ProfileController(IAccountService accountService) : ApiControllerV1
 {
     [HttpGet("{id}")]
+    [Authorize(Roles = "Leader,Director")]
     public async Task<IActionResult> GetAccountById(int id)
     {
         return Ok(await accountService.GetByIdAsync(id));
     }
     
     [HttpGet("me")]
+    [Authorize]
     public async Task<IActionResult> GetProfile()
     {
         var result = await accountService.GetByIdAsync(UserId);

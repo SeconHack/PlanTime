@@ -24,19 +24,9 @@ builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
-builder.Services.AddScoped<IVacationService, VacationService>();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowLocalhost5173",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5173")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-        });
-});
+builder.Services.AddCustomCors();
+
 var app = builder.Build();
 
 app.UseSwagger();

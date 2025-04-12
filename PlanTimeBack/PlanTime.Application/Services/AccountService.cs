@@ -7,7 +7,7 @@ using PlanTime.Domain.Repositories;
 
 namespace PlanTime.Application.Services;
 
-public class AccountService(IAccountRepository repository) : IAccountService
+public class AccountService(IAccountRepository repository, IProfessionService professionService) : IAccountService
 {
     public async Task<AccountDto> GetByIdAsync(int id)
     {
@@ -29,6 +29,7 @@ public class AccountService(IAccountRepository repository) : IAccountService
 
     public async Task<AccountDto> CreateAsync(AccountDto dto)
     {
+        var profession = await professionService.GetById(dto.ProfessionId);
         var candidate = await repository.CreateAsync(new DbAccount
         {
             Email = dto.Email,
@@ -37,7 +38,7 @@ public class AccountService(IAccountRepository repository) : IAccountService
             FirstName = dto.FirstName,
             MiddleName = dto.MiddleName,
             Phone = dto.Phone,
-            CountVacationDays = dto.CountVacationDays,
+            CountVacationDays = profession.CountVacationDays,
             RoleId = dto.RoleId,
             DivisionId = dto.DivisionId,
             ProfessionId = dto.ProfessionId

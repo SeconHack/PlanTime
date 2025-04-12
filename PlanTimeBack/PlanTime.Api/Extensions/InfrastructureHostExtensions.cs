@@ -55,6 +55,24 @@ public static class InfrastructureHostExtensions
     }
     
     /// <summary>
+    /// Подключение Cors.
+    /// </summary>
+    public static IServiceCollection AddCustomCors(this IServiceCollection services)
+    {
+        return services.AddCors(options =>
+        {
+            options.AddPolicy("AllowLocalhost5173",
+                policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+        });
+    }
+    
+    /// <summary>
     /// Подключение хранилища файлов.
     /// </summary>
     public static IServiceCollection AddMinio(this IServiceCollection services)
@@ -75,8 +93,7 @@ public static class InfrastructureHostExtensions
     public static void AddInfrastructure(this IServiceCollection services)
     {
         services.AddSingleton<IDbConnectionFactory, DefaultConnectionFactory>();
-
-
+        
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IProfessionRepository, ProfessionRepository>();

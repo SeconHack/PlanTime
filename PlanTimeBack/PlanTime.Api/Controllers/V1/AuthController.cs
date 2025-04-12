@@ -2,15 +2,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlanTime.Api.Controllers.Abstract;
-using PlanTime.Application.Dto;
 using PlanTime.Application.Services.Interfaces;
-using PlanTime.Domain.Repositories;
 using PlanTime.Models.Auth.Request;
 using LoginRequest = PlanTime.Models.Auth.Request.LoginRequest;
 
 namespace PlanTime.Api.Controllers.V1;
 
-[AllowAnonymous]
 public class AuthController(
     IAuthenticationService authService,
     IVacationService vacationService,
@@ -20,7 +17,6 @@ public class AuthController(
     IAccountService accountService
 ) : ApiControllerV1
 {
-    [Authorize(Roles = "Admin")]
     [HttpPost("login")]
     public async Task<ActionResult> Login(LoginRequest loginRequest)
     {
@@ -32,6 +28,7 @@ public class AuthController(
     }
 
     [HttpPost("register")]
+    [Authorize(Roles = "Leader,Director")]
     public async Task<ActionResult> Register(RegisterRequest registerRequest)
     {
         var (email, lastName, firstName, middleName, phone, professionId, roleId, divisionId, password) =
@@ -59,6 +56,8 @@ public class AuthController(
     }
 
     [HttpPost("registerFromFile")]
+    //[Authorize(Roles = "Leader,Director")]
+    [AllowAnonymous]
     public async Task<IActionResult> RegisterFromFile(IFormFile file)
     {
         if (file == null || file.Length == 0)

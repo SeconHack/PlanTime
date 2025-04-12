@@ -8,6 +8,7 @@ namespace PlanTime.Api.Controllers.V1;
 public class RoleController(IRoleService roleService) : ApiControllerV1
 {
     [HttpPost("{name}")]
+    [Authorize(Roles = "Leader,Director")]
     public async Task<IActionResult> Create(string name)
     {
         var result = await roleService.Create(name);
@@ -23,6 +24,7 @@ public class RoleController(IRoleService roleService) : ApiControllerV1
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await roleService.GetById(id);

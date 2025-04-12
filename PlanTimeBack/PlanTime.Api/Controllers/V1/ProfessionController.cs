@@ -10,7 +10,7 @@ namespace PlanTime.Api.Controllers.V1;
 public class ProfessionController(IProfessionService professionService) : ApiControllerV1
 {
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Leader,Director")]
     public async Task<IActionResult> Create(CreateProfessionRequest createProfessionRequest)
     {
         var result = await professionService.Create(createProfessionRequest);
@@ -26,6 +26,7 @@ public class ProfessionController(IProfessionService professionService) : ApiCon
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await professionService.GetById(id);
