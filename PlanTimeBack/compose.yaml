@@ -6,7 +6,7 @@
       dockerfile: PlanTime.Api/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_URLS: "plantime.webtm.ru"
+      ASPNETCORE_URLS: "http://0.0.0.0:9090"
       HTTP_PORTS: "9090"
     depends_on:
       database:
