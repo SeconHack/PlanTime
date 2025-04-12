@@ -4,15 +4,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PlanTime.Api.Controllers.Abstract;
 using PlanTime.Application.Services.Interfaces;
+using PlanTime.Domain.Repositories;
+using PlanTime.Infrastructure.Repositories;
 using PlanTime.Models.Vacations;
 
 namespace PlanTime.Api.Controllers.V1;
 
 [Route("api/[controller]")]
-public class DirectorController(IVacationService vacationService, IRecordService recordService) : ApiControllerV1
+public class DirectorController(IVacationService vacationService, IRecordService recordService, IMinioRepository minioRepository) : ApiControllerV1
 {
     [HttpGet("vacations/export")]
-    public async Task<IActionResult> ExportVacationsToExcel()
+    public async Task<IActionResult> ExportVacationsToMinio()
     {
         var vacations = await vacationService.GetAllVacationInfoAsync();
 
@@ -23,22 +25,28 @@ public class DirectorController(IVacationService vacationService, IRecordService
 
         var files = GenerateExcelFiles(vacations);
 
-        var zipStream = new MemoryStream();
-        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+        
+        const string bucketName = "vacations";
+        await minioRepository.CreateBucketAsync(bucketName);
+        const string folder = "2025";
+
+        foreach (var (fileName, stream) in files)
         {
-            foreach (var (fileName, content) in files)
-            {
-                var entry = archive.CreateEntry(fileName);
-                using var entryStream = entry.Open();
-                content.Position = 0;
-                await content.CopyToAsync(entryStream);
-            }
+            stream.Position = 0;
+
+            await minioRepository.UploadToFolderAsync(
+                bucketName,
+                folder,
+                fileName,
+                stream,
+                stream.Length,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            );
         }
 
-        await recordService.AddAsync(zipStream);
-        zipStream.Position = 0;
-        return File(zipStream, "application/zip", "vacations_by_departments.zip");
+        return Ok("Все файлы успешно загружены в MinIO.");
     }
+
 
     private List<(string fileName, MemoryStream content)> GenerateExcelFiles(List<VacationInfo> vacations)
     {
@@ -46,7 +54,7 @@ public class DirectorController(IVacationService vacationService, IRecordService
         var colors = new[]
         {
             XLColor.LightCoral,
-            XLColor.LightGreen,
+            XLColor.LightBrown,
             XLColor.LightBlue,
             XLColor.LightPink,
             XLColor.LightSalmon,
