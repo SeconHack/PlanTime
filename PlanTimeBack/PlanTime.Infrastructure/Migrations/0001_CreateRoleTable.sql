@@ -5,6 +5,6 @@ CREATE TABLE role (
 );
 
 INSERT INTO role (role_name)
-VALUES ("Worker"),
-       ("Director"),
-       ("Leader");
+VALUES ('Worker'),
+       ('Director'),
+       ('Leader');
