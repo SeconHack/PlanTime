@@ -74,14 +74,14 @@ public class AuthController(
         
         foreach (var row in rows)
         {
-            var email = row.Cell(2).GetValue<string>()?.Trim();
-            var password = row.Cell(3).GetValue<string>()?.Trim();
-            var lastName = row.Cell(4).GetValue<string>()?.Trim();
-            var firstName = row.Cell(5).GetValue<string>()?.Trim();
-            var middleName = row.Cell(6).GetValue<string>()?.Trim();
-            var phone = row.Cell(7).GetValue<string>()?.Trim();
-            var professionName = row.Cell(8).GetValue<string>()?.Trim();
-            var divisionName = row.Cell(9).GetValue<string>()?.Trim();
+            var email = row.Cell(1).GetValue<string>()?.Trim();
+            var password = row.Cell(2).GetValue<string>()?.Trim();
+            var lastName = row.Cell(3).GetValue<string>()?.Trim();
+            var firstName = row.Cell(4).GetValue<string>()?.Trim();
+            var middleName = row.Cell(5).GetValue<string>()?.Trim();
+            var phone = row.Cell(6).GetValue<string>()?.Trim();
+            var professionName = row.Cell(7).GetValue<string>()?.Trim();
+            var divisionName = row.Cell(8).GetValue<string>()?.Trim();
             
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) ||
                 string.IsNullOrEmpty(lastName) || string.IsNullOrEmpty(firstName))

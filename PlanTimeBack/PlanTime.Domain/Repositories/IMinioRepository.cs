@@ -15,4 +15,5 @@ public interface IMinioRepository
         Stream fileStream,
         long fileSize,
         string contentType);
+    Task<Stream?> GetFileAsync(string bucketName, string fileName);
 }

@@ -68,4 +68,35 @@ public class MinioRepository(IMinioClient minioClient) : IMinioRepository
             .WithObjectSize(size)
             .WithContentType(contentType));
     }
+    
+    public async Task<Stream?> GetFileAsync(string bucketName, string fileName)
+    {
+        var memoryStream = new MemoryStream();
+
+        try
+        {
+            var stat = await minioClient.StatObjectAsync(new StatObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(fileName));
+
+            await minioClient.GetObjectAsync(new GetObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(fileName)
+                .WithCallbackStream(stream =>
+                {
+                    stream.CopyTo(memoryStream);
+                }));
+
+            memoryStream.Position = 0;
+            return memoryStream;
+        }
+        catch (Minio.Exceptions.ObjectNotFoundException)
+        {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Ошибка при получении файла из MinIO", ex);
+        }
+    }
 }
