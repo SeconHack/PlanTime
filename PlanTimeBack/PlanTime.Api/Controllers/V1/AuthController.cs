@@ -18,6 +18,7 @@ public class AuthController(
 ) : ApiControllerV1
 {
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<ActionResult> Login(LoginRequest loginRequest)
     {
         var (email, password) = loginRequest;
