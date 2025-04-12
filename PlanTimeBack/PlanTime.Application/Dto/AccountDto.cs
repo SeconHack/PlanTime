@@ -35,6 +35,11 @@ public class AccountDto
     public string Phone { get; set; }
     
     /// <summary>
+    /// Количество дней отпуска.
+    /// </summary>
+    public int CountVacationDays { get; set; }
+    
+    /// <summary>
     /// Идентификатор профессии пользователя.
     /// </summary>
     public int ProfessionId { get; set; }

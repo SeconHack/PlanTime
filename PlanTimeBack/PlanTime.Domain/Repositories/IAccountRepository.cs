@@ -20,7 +20,7 @@ public interface IAccountRepository
     /// <summary>
     /// Обновляет существующую учетную запись.
     /// </summary>
-    Task<DbAccount> UpdateAsync(DbAccount dbAccount, int id);
+    Task UpdateAsync(DbAccount dbAccount, int id);
 
     /// <summary>
     /// Удаляет учетную запись по идентификатору.

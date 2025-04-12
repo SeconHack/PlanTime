@@ -9,7 +9,7 @@ using PlanTime.Models.Vacations;
 namespace PlanTime.Api.Controllers.V1;
 
 [Route("api/[controller]")]
-public class DirectorController(IVacationService vacationService) : ApiControllerV1
+public class DirectorController(IVacationService vacationService, IRecordService recordService) : ApiControllerV1
 {
     [HttpGet("vacations/export")]
     public async Task<IActionResult> ExportVacationsToExcel()
@@ -35,6 +35,7 @@ public class DirectorController(IVacationService vacationService) : ApiControlle
             }
         }
 
+        await recordService.AddAsync(zipStream);
         zipStream.Position = 0;
         return File(zipStream, "application/zip", "vacations_by_departments.zip");
     }

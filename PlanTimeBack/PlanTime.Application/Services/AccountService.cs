@@ -37,6 +37,7 @@ public class AccountService(IAccountRepository repository) : IAccountService
             FirstName = dto.FirstName,
             MiddleName = dto.MiddleName,
             Phone = dto.Phone,
+            CountVacationDays = dto.CountVacationDays,
             RoleId = dto.RoleId,
             DivisionId = dto.DivisionId,
             ProfessionId = dto.ProfessionId

@@ -1,32 +1,25 @@
 using PlanTime.Application.Services.Interfaces;
 using PlanTime.Domain.Entities;
+using PlanTime.Domain.Exceptions.Vacation;
 using PlanTime.Domain.Repositories;
 using PlanTime.Models.Vacations;
 
 namespace PlanTime.Application.Services;
 
-public class VacationService : IVacationService
+public class VacationService(
+    IAccountRepository accountRepository,
+    IVacationRepository vacationRepository,
+    IDivisionRepository divisionRepository) : IVacationService
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly IVacationRepository _vacationRepository;
-    private readonly IDivisionRepository _divisionRepository;
-
-    public VacationService(IAccountRepository accountRepository, IVacationRepository vacationRepository, IDivisionRepository divisionRepository)
-    {
-        _accountRepository = accountRepository;
-        _vacationRepository = vacationRepository;
-        _divisionRepository = divisionRepository;
-    }
-
     public async Task<List<VacationInfo>> GetAllVacationInfoAsync()
     {
-        var vacations = await _vacationRepository.GetAllAsync();
+        var vacations = await vacationRepository.GetAllAsync();
         var allVacationInfo = new List<VacationInfo>();
 
         foreach (var vacation in vacations)
         {
-            var user = await _accountRepository.GetByIdAsync(vacation.UserId);
-            var division = await _divisionRepository.GetByIdAsync(user.DivisionId);
+            var user = await accountRepository.GetByIdAsync(vacation.UserId);
+            var division = await divisionRepository.GetByIdAsync(user.DivisionId);
             var divisionName = division.DivisionName;
             allVacationInfo.Add(new VacationInfo(
                 user.LastName,
@@ -38,8 +31,41 @@ public class VacationService : IVacationService
         return allVacationInfo;
     }
 
-    public async Task<DbVacation> Create(int userId ,CreateVacationRequest model)
+    public async Task<DbVacation> Create(int userId, CreateVacationRequest model)
     {
+        if (model.StartDate > model.EndDate)
+            throw BadDateException.BadDate(model.StartDate, model.EndDate);
+        
+        var vacations = await vacationRepository.GetAllAsync();
+        var yearNow = DateTime.Now.Year;
+        
+        var count  = vacations.Count(v => 
+            v.UserId == userId &&
+            (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow));
+        
+        var myVacations = vacations.FindAll(v => v.UserId == userId && 
+                                                (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow));
+
+        foreach (var myVacation in myVacations)
+        {
+            bool isOverlap = model.StartDate <= myVacation.EndDate &&
+                             model.EndDate >= myVacation.StartDate;
+
+            if (isOverlap)
+            {
+                throw BadDateException.VacationOverlap(
+                    myVacation.StartDate, myVacation.EndDate);
+            }
+        }
+        
+        if(model.EndDate < model.StartDate + TimeSpan.FromDays(14) && count == 0)
+            throw BadDateException.BadDateCountDate(model.StartDate, model.EndDate);
+        
+        var account = await accountRepository.GetByIdAsync(userId);
+        var vacationDate = (int)(model.EndDate - model.StartDate).TotalDays;
+        
+        if(account.CountVacationDays < vacationDate)
+            throw BadDateException.BadCountVacationDays(account.CountVacationDays, model.StartDate, model.EndDate);
         
         var vacation = new DbVacation
         {
@@ -48,19 +74,23 @@ public class VacationService : IVacationService
             EndDate = model.EndDate,
             UserId = userId
         };
-        var candidate = await _vacationRepository.CreateAsync(vacation);
+        
+        account.CountVacationDays -= vacationDate;
+        await accountRepository.UpdateAsync(account, userId);
+        
+        var candidate = await vacationRepository.CreateAsync(vacation);
         return candidate;
     }
 
     public async Task<List<DbVacation>> GetAll()
     {
-        var vacations = await _vacationRepository.GetAllAsync();
+        var vacations = await vacationRepository.GetAllAsync();
         return vacations;
     }
 
     public async Task<DbVacation> GetById(int id)
     {
-        var vacation = await _vacationRepository.GetByIdAsync(id);
+        var vacation = await vacationRepository.GetByIdAsync(id);
         return vacation;
     }
 }

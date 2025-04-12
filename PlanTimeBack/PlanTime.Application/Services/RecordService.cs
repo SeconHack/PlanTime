@@ -12,8 +12,8 @@ public class RecordService(IMinioRepository minioRepository) : IRecordService
         if (!await minioRepository.BucketExistsAsync(BucketName))
             await minioRepository.CreateBucketAsync(BucketName);
 
-        var objectName = $"Record_{DateTime.Now.Date}";
-        await minioRepository.UploadObjectAsync(BucketName, objectName, stream, stream.Length, "xlsx");
+        var objectName = $"Record_{DateTime.Now:yyyyMMdd}.zip";
+        await minioRepository.UploadObjectAsync(BucketName, objectName, stream, stream.Length, "zip");
         
         return true;
     }
