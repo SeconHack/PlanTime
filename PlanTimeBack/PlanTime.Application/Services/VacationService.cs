@@ -42,10 +42,6 @@ public class VacationService(
         var vacations = await vacationRepository.GetAllAsync();
         var yearNow = DateTime.Now.Year;
         
-        var count  = vacations.Count(v => 
-            v.UserId == userId &&
-            (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow));
-        
         var myVacations = vacations.FindAll(v => v.UserId == userId && 
                                                 (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow));
 
@@ -61,10 +57,14 @@ public class VacationService(
             }
         }
         
-        if(model.EndDate < model.StartDate + TimeSpan.FromDays(14) && count == 0)
+        var account = await accountRepository.GetByIdAsync(userId);
+        /*var count  = vacations.Count(v => 
+            v.UserId == userId &&
+            (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow));*/
+        
+        if(model.EndDate < model.StartDate + TimeSpan.FromDays(14) && account.CountVacationDays <= 14)
             throw BadDateException.BadDateCountDate(model.StartDate, model.EndDate);
         
-        var account = await accountRepository.GetByIdAsync(userId);
         var vacationDate = (int)(model.EndDate - model.StartDate).TotalDays;
         
         if(account.CountVacationDays < vacationDate)

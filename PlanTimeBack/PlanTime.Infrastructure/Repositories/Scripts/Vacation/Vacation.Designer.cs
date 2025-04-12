@@ -60,9 +60,9 @@ namespace PlanTime.Infrastructure.Repositories.Scripts.Vacation {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to INSERT INTO vacation (start_date, end_date)
-        ///VALUES (@StartDate, @EndDate)
-        ///RETURNING id, start_date, end_date;.
+        ///   Looks up a localized string similar to INSERT INTO vacation (start_date, end_date,user_id)
+        ///VALUES (@StartDate, @EndDate,@UserId)
+        ///RETURNING id, start_date AS StartDate, end_date AS EndDate,user_id As UserId;.
         /// </summary>
         internal static string Create {
             get {
@@ -71,7 +71,20 @@ namespace PlanTime.Infrastructure.Repositories.Scripts.Vacation {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT * FROM vacation;.
+        ///   Looks up a localized string similar to DELETE FROM vacation WHERE id = @Id;.
+        /// </summary>
+        internal static string Delete {
+            get {
+                return ResourceManager.GetString("Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT id           AS Id,
+        ///       start_date   AS StartDate,
+        ///       end_date     AS EndDate,
+        ///       user_id      As UserId
+        ///FROM vacation;.
         /// </summary>
         internal static string GetAll {
             get {
@@ -83,6 +96,7 @@ namespace PlanTime.Infrastructure.Repositories.Scripts.Vacation {
         ///   Looks up a localized string similar to SELECT id                       AS Id,
         ///       start_date               AS StartDate,
         ///       end_date                 AS EndDate,
+        ///       user_id      As UserId
         ///FROM vacation
         ///WHERE id = @Id;.
         /// </summary>
