@@ -13,6 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerWithAuth();
 
+builder.Services.AddMinio();
 builder.Services.AddDapper();
 builder.Services.MigrateDatabase(configuration);
 

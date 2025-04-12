@@ -4,6 +4,7 @@ using PlanTime.Api.Controllers.Abstract;
 using PlanTime.Application.Services.Interfaces;
 
 namespace PlanTime.Api.Controllers.V1;
+
 [AllowAnonymous]
 public class RoleController(IRoleService roleService) : ApiControllerV1
 {

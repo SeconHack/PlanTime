@@ -2,7 +2,6 @@
 using Durak.Dapper.Models;
 using PlanTime.Domain.Entities;
 using PlanTime.Domain.Repositories;
-using PlanTime.Infrastructure.Repositories.Scripts.Profession;
 using PlanTime.Infrastructure.Repositories.Scripts.Role;
 
 namespace PlanTime.Infrastructure.Repositories;

@@ -19,7 +19,7 @@ public interface IAuthenticationService
     /// <param name="phone">Телефон пользователя.</param>
     /// <returns>DTO (Data Transfer Object) токена аутентификации.</returns>
     Task<TokenDto> RegisterAsync(
-        string email, 
+        string email,
         string lastName,
         string firstName,
         string middleName,
@@ -28,7 +28,7 @@ public interface IAuthenticationService
         int roleId,
         int divisionId,
         string password);
-
+    
     /// <summary>
     /// Аутентифицирует пользователя по указанному логину и паролю и возвращает токен аутентификации.
     /// </summary>
