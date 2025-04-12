@@ -1,0 +1,1 @@
+DELETE FROM vacation WHERE id = @Id;
