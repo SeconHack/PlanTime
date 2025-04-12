@@ -38,4 +38,11 @@ public class ProfessionService(IProfessionRepository professionRepository) : IPr
         
         return candidate;
     }
+    
+    public async Task<int?> GetIdByNameAsync(string name)
+    {
+        var divisions = await professionRepository.GetAllAsync();
+        var division = divisions.FirstOrDefault(d => d.ProfessionName == name);
+        return division?.Id;
+    }
 }

@@ -29,4 +29,11 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
         var roles = await roleRepository.GetAllAsync();
         return roles;
     }
+    
+    public async Task<int?> GetIdByNameAsync(string name)
+    {
+        var divisions = await roleRepository.GetAllAsync();
+        var division = divisions.FirstOrDefault(d => d.RoleName == name);
+        return division?.Id;
+    }
 }
