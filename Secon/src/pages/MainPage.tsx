@@ -10,6 +10,7 @@ const MainPage = () => {
     const [remainingVacationDays, setRemainingVacationDays] = useState(0); // Динамическое значение
     const [loading, setLoading] = useState(true); // Для отслеживания загрузки
     const [error, setError] = useState(null); // Для ошибок API
+    const [Name, setName] = useState();
 
     const months = [
         { name: 'ЯНВАРЬ', days: 31 },
@@ -32,7 +33,7 @@ const MainPage = () => {
     const [selectedDates, setSelectedDates] = useState([]);
     const maxSelectableDays = remainingVacationDays > 0 ? remainingVacationDays - 1 : 0;
 
-    // Загрузка countVacationDays при монтировании компонента
+    // Загрузка countVacationDays при монтировании компонента и получение ФИО
     useEffect(() => {
         const fetchVacationDays = async () => {
             const token = localStorage.getItem('accessToken');
@@ -52,6 +53,7 @@ const MainPage = () => {
                 });
                 console.log('Profile data:', response.data);
                 setRemainingVacationDays(response.data.countVacationDays || 0);
+                setName(response.data.lastName + " " + response.data.firstName + " " + response.data.middleName)
                 setLoading(false);
             } catch (error) {
                 console.error('Ошибка при загрузке профиля:', error);
@@ -63,7 +65,6 @@ const MainPage = () => {
                 }
             }
         };
-
         fetchVacationDays();
     }, [navigate]);
 
@@ -110,7 +111,7 @@ const MainPage = () => {
         updatedDates.sort((a, b) => {
             const aValue = a.month * 100 + a.day;
             const bValue = b.month * 100 + b.day;
-            return aValue - bValue;
+            return aValue - bValue + 1;
         });
 
         if (updatedDates.length === 2) {
@@ -282,7 +283,7 @@ const MainPage = () => {
 
     function InfiniteDivs() {
         return (
-            <div className="box-border flex flex-[0_0_auto] flex-row flex-wrap gap-[16px] items-end justify-start h-[488px] mt-[24px] pl-[40px]">
+            <div className="box-border grid grid-cols-7 gap-y-6 items-end mt-[24px] pl-[40px]">
                 {days.map((element) => (
                     <div
                         key={element}
@@ -330,7 +331,7 @@ const MainPage = () => {
                         className="rounded-[6px] w-[232px] h-[40px] border-[2px] pt-[7px] pl-[20px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer"
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                     >
-                        Профиль
+                        {Name}
                     </div>
                     {isProfileMenuOpen && (
                         <div className="absolute right-0 mt-2 w-[232px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg">
@@ -346,7 +347,7 @@ const MainPage = () => {
             </header>
             <section className="h-screen bg-[#FDE0B5] flex items-center justify-center">
                 <div className="box-border flex items-start justify-between min-w-[1128px] bg-white pt-[60px]">
-                    <div className="box-border flex flex-col items-stretch justify-start w-[872px] pb-[128px]">
+                    <div className="box-border flex flex-col items-stretch justify-start w-[872px] h-[656px] pb-[128px]">
                         <div className="flex items-center justify-center space-x-[20px]">
                             <button
                                 onClick={handlePrevMonth}
