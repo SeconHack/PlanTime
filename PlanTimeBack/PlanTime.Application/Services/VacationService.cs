@@ -61,7 +61,7 @@ public class VacationService(
         var count  = vacations.Count(v => 
             v.UserId == userId &&
             (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow) && 
-            v.EndDate - v.StartDate > TimeSpan.FromDays(14));
+            v.EndDate - v.StartDate >= TimeSpan.FromDays(14));
         
         if(model.EndDate < model.StartDate + TimeSpan.FromDays(14) && count == 0)
             throw BadDateException.BadDateCountDate(model.StartDate, model.EndDate);
