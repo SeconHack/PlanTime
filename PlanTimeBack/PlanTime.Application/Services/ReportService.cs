@@ -11,24 +11,26 @@ public class ReportService(IAccountRepository accountRepository,
     IVacationService vacationService,IVacationRepository vacationRepository,
     IMailServiceSender mailServiceSender, ICommunicationsRepository communicationsRepository) :IReportService
 {
-    private (string fileName, MemoryStream content) GenerateExcelFile(string divisionName,List<VacationInfo> vacations)
+    private (string fileName, MemoryStream content) GenerateExcelFile(string divisionName,int divisionId,List<VacationInfo> vacations)
     {
         var stream = new MemoryStream();
         using (var workbook = new XLWorkbook())
         {
             var sheetName = "list1";
+            int rowIndex = 1;
             var worksheet = workbook.Worksheets.Add(sheetName);
             
-            worksheet.Cell(1, 1).Value = "id отпуска";
-            worksheet.Cell(1, 2).Value = "почта";
-            worksheet.Cell(1, 3).Value = "Подразделение";
-            worksheet.Cell(1, 4).Value = "Дата начала отпуска";
-            worksheet.Cell(1, 5).Value = "Дата конца отпуска";
-
+            worksheet.Cell(rowIndex, 1).Value = "id отпуска";
+            worksheet.Cell(rowIndex, 2).Value = "почта";
+            worksheet.Cell(rowIndex, 3).Value = "Подразделение";
+            worksheet.Cell(rowIndex, 4).Value = "Дата начала отпуска";
+            worksheet.Cell(rowIndex, 5).Value = "Дата конца отпуска";
+            rowIndex++;
             var sorted = vacations.OrderBy(v => v.VacationStartDate).ToList();
             var indexed = sorted.Select((v, i) => (v, row: i + 2)).ToList();
             foreach (var (v, row) in indexed)
             {
+                rowIndex++;
                 worksheet.Cell(row, 1).Value = v.VacationId;
                 worksheet.Cell(row, 2).Value = v.Email;
                 worksheet.Cell(row, 3).Value = v.DivisionName;
@@ -40,6 +42,9 @@ public class ReportService(IAccountRepository accountRepository,
         }
 
         stream.Position = 0;
+        
+        var communications = communicationsRepository.GetByParentIdAsync(divisionId);
+        
 
         // Убрать недопустимые символы из названия файла
         var safeFileName = string.Concat(divisionName.Split(Path.GetInvalidFileNameChars()));
@@ -57,11 +62,11 @@ public class ReportService(IAccountRepository accountRepository,
             List<VacationInfo> vacationInfos = new List<VacationInfo>();
             vacationInfos.Add(vacations[i]);
             vacations.RemoveAt(i);
-            int indMax = i;
+            int indMax = 0;
             for(int j = i ; j < vacations.Count; j++)
-                if (vacations[indMax].VacationEndDate > vacations[j].VacationStartDate)
+                if (vacationInfos[indMax].VacationEndDate > vacations[j].VacationStartDate)
                 {
-                    indMax = j;
+                    indMax++;
                     vacationInfos.Add(vacations[j]);
                     vacations.RemoveAt(j--);
                     
@@ -88,7 +93,7 @@ public class ReportService(IAccountRepository accountRepository,
         }
         
 
-        var (fileName, stream) = GenerateExcelFile(division.DivisionName, vacations);
+        var (fileName, stream) = GenerateExcelFile(division.DivisionName,division.Id, vacations);
         const string bucketName = "vacations";
         await minioRepository.CreateBucketAsync(bucketName);
         const string folder = "2025";
