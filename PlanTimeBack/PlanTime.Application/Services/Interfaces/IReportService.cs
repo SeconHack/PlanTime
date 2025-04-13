@@ -8,4 +8,5 @@ public interface IReportService
     Task<List<List<VacationInfo>>> GetIntersectionsAsync(int userId);
 
     Task DeleteVocationWithNotificationAsync(int vacationId);
+    Task<(int, string, MemoryStream)> GetFinalReportAsync(int userId);
 }

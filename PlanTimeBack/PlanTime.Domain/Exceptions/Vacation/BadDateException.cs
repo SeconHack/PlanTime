@@ -6,7 +6,7 @@ public class BadDateException(string message) : BadRequestException(message)
 {
     public static BadDateException BadDateCountDate(DateTime startDate, DateTime endDate)
     {
-        return new BadDateException($"Первый отпуск должен быть больше 13 дней. Сейчас с {startDate:dd.MM.yyyy} до {endDate:dd.MM.yyyy}");
+        return new BadDateException($"Хотя бы один отпуск должен быть 14 дней и больше. Сейчас с {startDate:dd.MM.yyyy} до {endDate:dd.MM.yyyy}");
     }
 
     public static BadDateException BadDate(DateTime startDate, DateTime endDate)

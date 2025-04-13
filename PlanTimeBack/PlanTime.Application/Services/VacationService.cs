@@ -58,13 +58,16 @@ public class VacationService(
         }
         
         var account = await accountRepository.GetByIdAsync(userId);
-        var count  = vacations.Count(v => 
-            v.UserId == userId &&
-            (v.StartDate.Year == yearNow || v.EndDate.Year == yearNow) && 
-            v.EndDate - v.StartDate >= TimeSpan.FromDays(14));
         
-        if(model.EndDate < model.StartDate + TimeSpan.FromDays(14) && count == 0)
+        var vacationDuration = (model.EndDate - model.StartDate).TotalDays;
+
+        var hasLongVacation = myVacations.Any(v => (v.EndDate - v.StartDate).TotalDays >= 14);
+        bool currentIsLong = vacationDuration >= 14;
+
+        if (!hasLongVacation && !currentIsLong)
+        {
             throw BadDateException.BadDateCountDate(model.StartDate, model.EndDate);
+        }
         
         var vacationDate = (int)(model.EndDate - model.StartDate).TotalDays;
         

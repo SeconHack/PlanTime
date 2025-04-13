@@ -12,7 +12,7 @@ public class AuthenticationService(
     IRoleService roleService,
     IProfessionService professionService,
     IPasswordHasher passwordHasher,
-    IJwtTokenService jwtService) : IAuthenticationService
+    IJwtTokenService jwtService,IMailServiceSender mailServiceSender) : IAuthenticationService
 {
     public async Task<TokenDto> RegisterAsync(
         string email,
@@ -49,7 +49,7 @@ public class AuthenticationService(
             new(ClaimTypes.Role, roleName),
             new("id", candidate.Id.ToString())
         });
-
+        mailServiceSender.SendMail(email, "Вас зарегистрировали в программе выбора отпусков", "Ваш логин " + email + "\n Ваш пароль " + password);
         return token;
     }
     
