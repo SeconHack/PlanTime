@@ -46,7 +46,20 @@ public class ReportService(IAccountRepository accountRepository,
                 if (file != null)
                 {
                     var newBook = new XLWorkbook(file);
-                    
+                    newBook.Save();
+                    var newworksheet = newBook.Worksheet(1);
+                    // получим все строки в файле
+                    var rows = newworksheet.RangeUsed().RowsUsed(); // Skip header row
+                    // пример чтения строк файла.
+                    foreach (var row in rows)
+                    {
+                        worksheet.Cell(rowIndex, 1).Value = row.Cell(1).Value;
+                        worksheet.Cell(rowIndex, 2).Value = row.Cell(2).Value;
+                        worksheet.Cell(rowIndex, 3).Value = row.Cell(3).Value;
+                        worksheet.Cell(rowIndex, 4).Value = row.Cell(4).Value;
+                        worksheet.Cell(rowIndex, 5).Value = row.Cell(5).Value;
+                        rowIndex++;
+                    }
                 }
                 
             }
@@ -76,7 +89,7 @@ public class ReportService(IAccountRepository accountRepository,
             int indMax = 0;
             for(int j = 0 ; j < vacations.Count; j++)
                 if (vacationInfos[indMax].VacationEndDate > vacations[j].VacationStartDate&&
-                    vacationInfos[indMax].VacationEndDate < vacations[j].VacationStartDate)
+                    vacationInfos[indMax].VacationStartDate < vacations[j].VacationStartDate)
                 {
                     indMax++;
                     vacationInfos.Add(vacations[j]);
