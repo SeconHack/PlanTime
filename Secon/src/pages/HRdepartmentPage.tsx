@@ -92,6 +92,11 @@ const HRdepartmentPage = () => {
         navigate('/login');
     };
 
+    // Переход на страницу регистрации
+    const handleAddUser = () => {
+        navigate('/Registration');
+    };
+
     return (
         <>
             <header className="flex justify-between items-center p-[1rem] bg-white">
@@ -126,7 +131,13 @@ const HRdepartmentPage = () => {
                         <h4 className="text-2xl font-semibold font-[Montserrat] text-[#023973] mb-[20px]">
                             Личный кабинет HR
                         </h4>
-                        <div className="bg-white border-[2px] border-[#023973] rounded-[6px] p-4">
+                        <div className="bg-white border-[2px] border-[#023973] rounded-[6px] p-4 mb-4">
+                            <button
+                                onClick={handleAddUser}
+                                className="w-full h-[40px] text-base text-white font-medium rounded-[10px] font-[Montserrat] bg-[#023973] cursor-pointer mb-4"
+                            >
+                                Добавить нового пользователя
+                            </button>
                             <div className="mb-4">
                                 <label
                                     htmlFor="file-upload"
