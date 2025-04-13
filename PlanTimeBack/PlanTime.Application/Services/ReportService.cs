@@ -56,12 +56,15 @@ public class ReportService(IAccountRepository accountRepository,
         {
             List<VacationInfo> vacationInfos = new List<VacationInfo>();
             vacationInfos.Add(vacations[i]);
+            vacations.RemoveAt(i);
             int indMax = i;
-            for(int j = i + 1; j < vacations.Count; j++)
+            for(int j = i ; j < vacations.Count; j++)
                 if (vacations[indMax].VacationEndDate > vacations[j].VacationEndDate)
                 {
                     indMax = j;
                     vacationInfos.Add(vacations[j]);
+                    vacations.RemoveAt(j--);
+                    
                 }
             if(vacationInfos.Count != 1)
                 result.Add(vacationInfos);
