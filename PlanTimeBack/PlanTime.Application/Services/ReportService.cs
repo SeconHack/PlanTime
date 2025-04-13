@@ -8,7 +8,8 @@ namespace PlanTime.Application.Services;
 public class ReportService(IAccountRepository accountRepository,
     IDivisionRepository divisionRepository,
     IMinioRepository minioRepository,
-    IVacationService vacationService) :IReportService
+    IVacationService vacationService,IVacationRepository vacationRepository,
+    IMailServiceSender mailServiceSender) :IReportService
 {
     private (string fileName, MemoryStream content) GenerateExcelFile(string divisionName,List<VacationInfo> vacations)
     {
@@ -88,5 +89,17 @@ public class ReportService(IAccountRepository accountRepository,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         );
         return (0,"success");
+    }
+
+    public async Task DeleteVocationWithNotificationAsync(int vacationId)
+    {
+        var vacation = await vacationRepository.GetByIdAsync(vacationId);
+        int dayCouns = vacation.EndDate.Day - vacation.StartDate.Day;
+        var user = await accountRepository.GetByIdAsync(vacation.UserId);
+        user.CountVacationDays+=dayCouns;
+        accountRepository.UpdateAsync(user,user.Id);
+        await vacationRepository.DeleteAsync(vacationId);
+        mailServiceSender.SendMail(user.Email,"Необходимо обновить данные",
+            "Руководитель убрал ваш отпуск. Пожалуйста выберете новую дату");
     }
 }

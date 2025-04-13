@@ -1,11 +1,12 @@
 ﻿using System.Net;
 using System.Net.Mail;
+using PlanTime.Application.Services.Interfaces;
 
 namespace PlanTime.Application.Services;
 
-public class MailServiceSender
+public class MailServiceSender : IMailServiceSender
 {
-    private const string From = @"bekname@mail.ru"; // адреса отправителя
+    private const string From = "bekname@mail.ru"; // адреса отправителя
     private const string Pass = "mTHjQWEqreWjVB1Fdetz"; // пароль отправителя
     private const string Smtp = "smtp.mail.ru";
     private readonly SmtpClient _client;
@@ -19,7 +20,7 @@ public class MailServiceSender
         _client.Credentials = new NetworkCredential(From.Split('@')[0], Pass);
         _client.DeliveryMethod = SmtpDeliveryMethod.Network;
     }
-    public void SendMail(string to, string subject, string body)
+    public (int, string) SendMail(string to, string subject, string body)
     {
         try
         {
@@ -39,7 +40,8 @@ public class MailServiceSender
         }
         catch (Exception e)
         {
-            throw new Exception("Mail.Send: " + e.Message);
+            return (1, e.Message);
         }
+        return (0, "success");
     }
 }

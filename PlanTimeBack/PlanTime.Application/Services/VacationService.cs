@@ -91,7 +91,7 @@ public class VacationService(
         return vacations;
     }
 
-    public async Task<List<DbVacation>> GetById(int id)
+    public async Task<DbVacation> GetById(int id)
     {
         var vacation = await vacationRepository.GetByIdAsync(id);
         return vacation;

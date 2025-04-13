@@ -103,6 +103,6 @@ public static class InfrastructureHostExtensions
         services.AddScoped<IDivisionRepository, DivisionRepository>();
         services.AddScoped<IMinioRepository, MinioRepository>();
         services.AddScoped<IReportService, ReportService>();
-
+        services.AddScoped<IMailServiceSender, MailServiceSender>();
     }
 }
