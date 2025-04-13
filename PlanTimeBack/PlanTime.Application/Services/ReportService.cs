@@ -11,7 +11,8 @@ public class ReportService(IAccountRepository accountRepository,
     IVacationService vacationService,IVacationRepository vacationRepository,
     IMailServiceSender mailServiceSender, ICommunicationsRepository communicationsRepository) :IReportService
 {
-    private async Task<(string fileName, MemoryStream content)> GenerateExcelFile(string divisionName,List<VacationInfo> vacations)
+    const string BucketName = "vacations";
+    private async Task<(string fileName, MemoryStream content)> GenerateExcelFile(string divisionName,int divisionId,List<VacationInfo> vacations)
     {
         var stream = new MemoryStream();
         using (var workbook = new XLWorkbook())
@@ -37,6 +38,18 @@ public class ReportService(IAccountRepository accountRepository,
                 worksheet.Cell(row, 4).Value = v.VacationStartDate.ToString("dd.MM.yyyy");
                 worksheet.Cell(row, 5).Value = v.VacationEndDate.ToString("dd.MM.yyyy");
             }
+            var communications = await communicationsRepository.GetByParentIdAsync(divisionId);
+            foreach (var communication in communications)
+            {
+                var child =await divisionRepository.GetByIdAsync(communication.ChildId);
+                var file = await minioRepository.GetFileAsync(BucketName, child.DivisionName);
+                if (file != null)
+                {
+                    var newBook = new XLWorkbook(file);
+                    
+                }
+                
+            }
             worksheet.Columns().AdjustToContents();
             workbook.SaveAs(stream);
         }
@@ -53,6 +66,7 @@ public class ReportService(IAccountRepository accountRepository,
     {
         var user = await accountRepository.GetByIdAsync(userId);
         var vacations = await vacationService.GetVacationInfoByDivisionIdAsync(user.DivisionId);
+        var divisionName = vacations[0].DivisionName;
         List<List<VacationInfo>> result = new List<List<VacationInfo>>();
         while (vacations.Count > 0)
         {
@@ -66,15 +80,16 @@ public class ReportService(IAccountRepository accountRepository,
                 {
                     indMax++;
                     vacationInfos.Add(vacations[j]);
-                    vacations.RemoveAt(j--);
-                    
+                    vacations.RemoveAt(j);
+                    j--;
+
                 }
             if(vacationInfos.Count != 1)
                 result.Add(vacationInfos);
         }
 
                     
-        var divisionName = vacations[0].DivisionName;
+        
         result.Add(vacations.Where(v=>v.DivisionName==divisionName).ToList());
         vacations.RemoveAll(v => v.DivisionName==divisionName);
         return result;
@@ -90,31 +105,19 @@ public class ReportService(IAccountRepository accountRepository,
         }
         
 
-        var (fileName, stream) = await GenerateExcelFile(division.DivisionName, vacations);
-        const string bucketName = "vacations";
-        await minioRepository.CreateBucketAsync(bucketName);
+        var (fileName, stream) = await GenerateExcelFile(division.DivisionName,division.Id, vacations);
+        
+        await minioRepository.CreateBucketAsync(BucketName);
         const string folder = "2025";
-        var communications = await communicationsRepository.GetByParentIdAsync(division.Id);
+        
 
-        foreach (var communication in communications)
-        {
-            var child =await divisionRepository.GetByIdAsync(communication.ChildId);
-            var file = await minioRepository.GetFileAsync(bucketName, child.DivisionName);
-            
-            var mainbook = new XLWorkbook(stream);
-            if (file != null)
-            {
-                var workbook = new XLWorkbook(file);
-                //mainbook.Worksheets.Worksheet(0) workbook.Worksheets.Worksheet(0).Row(2);
-            }
-                
-        }
+
 
 
         stream.Position = 0;
 
         await minioRepository.UploadToFolderAsync(
-            bucketName,
+            BucketName,
             folder,
             fileName,
             stream,
