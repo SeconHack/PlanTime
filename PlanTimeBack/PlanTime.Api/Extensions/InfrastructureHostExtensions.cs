@@ -9,6 +9,7 @@ using PlanTime.Domain.Repositories;
 using PlanTime.Infrastructure.Factories;
 using PlanTime.Infrastructure.Factories.Interfaces;
 using PlanTime.Infrastructure.Repositories;
+using PlanTime.Infrastructure.Repositories.Scripts.Communications;
 
 namespace PlanTime.Api.Extensions;
 
@@ -106,5 +107,6 @@ public static class InfrastructureHostExtensions
         services.AddScoped<IMinioRepository, MinioRepository>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IMailServiceSender, MailServiceSender>();
+        services.AddScoped<ICommunicationsRepository, CommunicationsRepository>();
     }
 }

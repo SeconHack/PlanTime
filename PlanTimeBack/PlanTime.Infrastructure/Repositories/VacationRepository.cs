@@ -25,6 +25,6 @@ public class VacationRepository(IDapperContext<IDapperSettings> dapperContext) :
 
     public async Task DeleteAsync(int id)
     { 
-        await dapperContext.Command(new QueryObject(Vacation.GetById, new { id }));
+        await dapperContext.Command(new QueryObject(Vacation.Delete, new { id }));
     }
 }

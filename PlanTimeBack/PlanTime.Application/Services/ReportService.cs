@@ -9,38 +9,66 @@ public class ReportService(IAccountRepository accountRepository,
     IDivisionRepository divisionRepository,
     IMinioRepository minioRepository,
     IVacationService vacationService,IVacationRepository vacationRepository,
-    IMailServiceSender mailServiceSender) :IReportService
+    IMailServiceSender mailServiceSender, ICommunicationsRepository communicationsRepository) :IReportService
 {
-    private (string fileName, MemoryStream content) GenerateExcelFile(string divisionName,List<VacationInfo> vacations)
+    const string BucketName = "vacations";
+    private async Task<(string fileName, MemoryStream content)> GenerateExcelFile(string divisionName,int divisionId,List<VacationInfo> vacations)
     {
         var stream = new MemoryStream();
         using (var workbook = new XLWorkbook())
         {
             var sheetName = "list1";
+            int rowIndex = 1;
             var worksheet = workbook.Worksheets.Add(sheetName);
             
-            worksheet.Cell(1, 1).Value = "id отпуска";
-            worksheet.Cell(1, 2).Value = "почта";
-            worksheet.Cell(1, 3).Value = "Подразделение";
-            worksheet.Cell(1, 4).Value = "Дата начала отпуска";
-            worksheet.Cell(1, 5).Value = "Дата конца отпуска";
-
+            worksheet.Cell(rowIndex, 1).Value = "id отпуска";
+            worksheet.Cell(rowIndex, 2).Value = "почта";
+            worksheet.Cell(rowIndex, 3).Value = "Подразделение";
+            worksheet.Cell(rowIndex, 4).Value = "Дата начала отпуска";
+            worksheet.Cell(rowIndex, 5).Value = "Дата конца отпуска";
+            rowIndex++;
             var sorted = vacations.OrderBy(v => v.VacationStartDate).ToList();
             var indexed = sorted.Select((v, i) => (v, row: i + 2)).ToList();
             foreach (var (v, row) in indexed)
             {
+                rowIndex++;
                 worksheet.Cell(row, 1).Value = v.VacationId;
                 worksheet.Cell(row, 2).Value = v.Email;
                 worksheet.Cell(row, 3).Value = v.DivisionName;
                 worksheet.Cell(row, 4).Value = v.VacationStartDate.ToString("dd.MM.yyyy");
                 worksheet.Cell(row, 5).Value = v.VacationEndDate.ToString("dd.MM.yyyy");
             }
+            var communications = await communicationsRepository.GetByParentIdAsync(divisionId);
+            foreach (var communication in communications)
+            {
+                var child =await divisionRepository.GetByIdAsync(communication.ChildId);
+                var file = await minioRepository.GetFileAsync(BucketName,$"Подразделение {child.DivisionName}.xlsx" );
+                if (file != null)
+                {
+                    var newBook = new XLWorkbook(file);
+                    newBook.Save();
+                    var newworksheet = newBook.Worksheet(1);
+                    // получим все строки в файле
+                    var rows = newworksheet.RangeUsed().RowsUsed(); // Skip header row
+                    // пример чтения строк файла.
+                    foreach (var row in rows)
+                    {
+                        worksheet.Cell(rowIndex, 1).Value = row.Cell(1).Value;
+                        worksheet.Cell(rowIndex, 2).Value = row.Cell(2).Value;
+                        worksheet.Cell(rowIndex, 3).Value = row.Cell(3).Value;
+                        worksheet.Cell(rowIndex, 4).Value = row.Cell(4).Value;
+                        worksheet.Cell(rowIndex, 5).Value = row.Cell(5).Value;
+                        rowIndex++;
+                    }
+                }
+                
+            }
             worksheet.Columns().AdjustToContents();
             workbook.SaveAs(stream);
         }
 
         stream.Position = 0;
-
+        
         // Убрать недопустимые символы из названия файла
         var safeFileName = string.Concat(divisionName.Split(Path.GetInvalidFileNameChars()));
         
@@ -51,27 +79,28 @@ public class ReportService(IAccountRepository accountRepository,
     {
         var user = await accountRepository.GetByIdAsync(userId);
         var vacations = await vacationService.GetVacationInfoByDivisionIdAsync(user.DivisionId);
+        var divisionName = vacations[0].DivisionName;
         List<List<VacationInfo>> result = new List<List<VacationInfo>>();
-        for (int i = 0; i < vacations.Count; i++)
+        while (vacations.Count > 0)
         {
             List<VacationInfo> vacationInfos = new List<VacationInfo>();
-            vacationInfos.Add(vacations[i]);
-            int indMax = i;
-            for(int j = i + 1; j < vacations.Count; j++)
-                if (vacations[indMax].VacationEndDate > vacations[j].VacationEndDate)
+            vacationInfos.Add(vacations[0]);
+            vacations.RemoveAt(0);
+            DateTime startDate = vacationInfos[0].VacationStartDate;
+            DateTime endDate = vacationInfos[0].VacationEndDate;
+            for(int j = 0; j < vacations.Count; j++)
+                if (endDate >= vacations[j].VacationStartDate&&
+                    startDate <= vacations[j].VacationStartDate)
                 {
-                    indMax = j;
+                    endDate = vacations[j].VacationEndDate;
                     vacationInfos.Add(vacations[j]);
-                }
-            if(vacationInfos.Count != 1)
-                result.Add(vacationInfos);
-                
-        }
+                    vacations.RemoveAt(j);
+                    j--;
 
-                    
-        var divisionName = vacations[0].DivisionName;
-        result.Add(vacations.Where(v=>v.DivisionName==divisionName).ToList());
-        vacations.RemoveAll(v => v.DivisionName==divisionName);
+                }
+            if(vacationInfos.Count > 1)
+                result.Add(vacationInfos);
+        }
         return result;
     }
     public async Task<(int,string)> SaveReportAsync(int userId)
@@ -85,16 +114,19 @@ public class ReportService(IAccountRepository accountRepository,
         }
         
 
-        var (fileName, stream) = GenerateExcelFile(division.DivisionName, vacations);
-        const string bucketName = "vacations";
-        await minioRepository.CreateBucketAsync(bucketName);
+        var (fileName, stream) = await GenerateExcelFile(division.DivisionName,division.Id, vacations);
+        
+        await minioRepository.CreateBucketAsync(BucketName);
         const string folder = "2025";
+        
+
+
 
 
         stream.Position = 0;
 
         await minioRepository.UploadToFolderAsync(
-            bucketName,
+            BucketName,
             folder,
             fileName,
             stream,
