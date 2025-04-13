@@ -18,9 +18,9 @@ public class VacationRepository(IDapperContext<IDapperSettings> dapperContext) :
         return await dapperContext.ListOrEmpty<DbVacation>(new QueryObject(Vacation.GetAll));
     }
 
-    public async Task<List<DbVacation>> GetByIdAsync(int id)
+    public async Task<DbVacation> GetByIdAsync(int id)
     {
-        return await dapperContext.ListOrEmpty<DbVacation>(new QueryObject(Vacation.GetById, new {id}));
+        return await dapperContext.FirstOrDefault<DbVacation>(new QueryObject(Vacation.GetById, new {id}));
     }
 
     public async Task DeleteAsync(int id)

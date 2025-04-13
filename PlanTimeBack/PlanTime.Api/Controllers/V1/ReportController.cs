@@ -29,14 +29,13 @@ public class ReportController(
     [HttpGet("vacations/intersections")]
     public async Task<List<List<VacationInfo>>> GetInterSections()
     {
-        var res = await reportService.GetIntersectionsAsync(UserId);
-        return res;
+        return await reportService.GetIntersectionsAsync(UserId);
     }
     [HttpDelete("vacations/{vocationId}")]
-    public async Task<IActionResult> DeleteVocationWithInfo(int vocationId)
+    public async Task<IActionResult> DeleteVacationWithInfo(int vocationId)
     {
-        
-        return Ok("");
+        reportService.DeleteVocationWithNotificationAsync(vocationId);
+        return Ok();
     }
 
     [HttpPost("vacations/create-from-template")]

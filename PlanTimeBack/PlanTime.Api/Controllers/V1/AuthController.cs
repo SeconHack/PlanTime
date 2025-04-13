@@ -29,7 +29,6 @@ public class AuthController(
     }
 
     [HttpPost("register")]
-    [Authorize(Roles = "Leader,Director")]
     public async Task<ActionResult> Register(RegisterRequest registerRequest)
     {
         var (email, lastName, firstName, middleName, phone, professionId, roleId, divisionId, password) =
