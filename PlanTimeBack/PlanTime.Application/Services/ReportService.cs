@@ -86,25 +86,21 @@ public class ReportService(IAccountRepository accountRepository,
             List<VacationInfo> vacationInfos = new List<VacationInfo>();
             vacationInfos.Add(vacations[0]);
             vacations.RemoveAt(0);
-            int indMax = 0;
+            DateTime startDate = vacationInfos[0].VacationStartDate;
+            DateTime endDate = vacationInfos[0].VacationEndDate;
             for(int j = 0 ; j < vacations.Count; j++)
-                if (vacationInfos[indMax].VacationEndDate > vacations[j].VacationStartDate&&
-                    vacationInfos[indMax].VacationStartDate < vacations[j].VacationStartDate)
+                if (endDate > vacations[j].VacationStartDate&&
+                    startDate < vacations[j].VacationStartDate)
                 {
-                    indMax++;
+                    endDate = vacations[j].VacationEndDate;
                     vacationInfos.Add(vacations[j]);
                     vacations.RemoveAt(j);
                     j--;
 
                 }
-            if(vacationInfos.Count != 1)
+            if(vacationInfos.Count > 1)
                 result.Add(vacationInfos);
         }
-
-                    
-        
-        result.Add(vacations.Where(v=>v.DivisionName==divisionName).ToList());
-        vacations.RemoveAll(v => v.DivisionName==divisionName);
         return result;
     }
     public async Task<(int,string)> SaveReportAsync(int userId)
