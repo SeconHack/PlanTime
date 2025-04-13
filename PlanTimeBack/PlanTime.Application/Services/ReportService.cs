@@ -9,7 +9,7 @@ public class ReportService(IAccountRepository accountRepository,
     IDivisionRepository divisionRepository,
     IMinioRepository minioRepository,
     IVacationService vacationService,IVacationRepository vacationRepository,
-    IMailServiceSender mailServiceSender) :IReportService
+    IMailServiceSender mailServiceSender, ICommunicationsRepository communicationsRepository) :IReportService
 {
     private (string fileName, MemoryStream content) GenerateExcelFile(string divisionName,List<VacationInfo> vacations)
     {
@@ -59,7 +59,7 @@ public class ReportService(IAccountRepository accountRepository,
             vacations.RemoveAt(i);
             int indMax = i;
             for(int j = i ; j < vacations.Count; j++)
-                if (vacations[indMax].VacationEndDate > vacations[j].VacationEndDate)
+                if (vacations[indMax].VacationEndDate > vacations[j].VacationStartDate)
                 {
                     indMax = j;
                     vacationInfos.Add(vacations[j]);
@@ -92,6 +92,7 @@ public class ReportService(IAccountRepository accountRepository,
         const string bucketName = "vacations";
         await minioRepository.CreateBucketAsync(bucketName);
         const string folder = "2025";
+        var childs = 
 
 
         stream.Position = 0;
