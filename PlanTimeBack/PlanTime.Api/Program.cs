@@ -34,7 +34,7 @@ app.UseSwaggerUI();
 app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-app.UseCors("AllowLocalhost5173");
+app.UseCors("AllowLocalhostAndOtherUrls");
 app.MapControllers();
 
 app.Run();

@@ -3,8 +3,6 @@ using DbUp;
 using Durak.Dapper;
 using Durak.Dapper.Interfaces;
 using Minio;
-using PlanTime.Application.Services;
-using PlanTime.Application.Services.Interfaces;
 using PlanTime.Domain.Repositories;
 using PlanTime.Infrastructure.Factories;
 using PlanTime.Infrastructure.Factories.Interfaces;
@@ -63,10 +61,12 @@ public static class InfrastructureHostExtensions
     {
         return services.AddCors(options =>
         {
-            options.AddPolicy("AllowLocalhost5173",
+            options.AddPolicy("AllowLocalhostAndOtherUrls",
                 policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins("http://localhost:5173",
+                            "http://109.73.203.81:5173",
+                            "https://109.73.203.81:5173")
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
