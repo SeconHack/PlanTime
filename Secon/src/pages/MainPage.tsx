@@ -7,10 +7,11 @@ const MainPage = () => {
     const navigate = useNavigate();
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(1);
-    const [remainingVacationDays, setRemainingVacationDays] = useState(0); // Динамическое значение
-    const [loading, setLoading] = useState(true); // Для отслеживания загрузки
-    const [error, setError] = useState(null); // Для ошибок API
-    const [Name, setName] = useState();
+    const [remainingVacationDays, setRemainingVacationDays] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [name, setName] = useState('');
+    const [roleId, setRoleId] = useState(null);
 
     const months = [
         { name: 'ЯНВАРЬ', days: 31 },
@@ -33,7 +34,7 @@ const MainPage = () => {
     const [selectedDates, setSelectedDates] = useState([]);
     const maxSelectableDays = remainingVacationDays > 0 ? remainingVacationDays - 1 : 0;
 
-    // Загрузка countVacationDays при монтировании компонента и получение ФИО
+    // Загрузка данных профиля, включая roleId
     useEffect(() => {
         const fetchVacationDays = async () => {
             const token = localStorage.getItem('accessToken');
@@ -44,7 +45,7 @@ const MainPage = () => {
             }
 
             try {
-                const apiUrl = 'http://109.73.203.81:9090/v1/profile/me'; // Для локального тестирования: http://localhost:9090
+                const apiUrl = 'http://109.73.203.81:9090/v1/profile/me';
                 const response = await axios.get(apiUrl, {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -53,7 +54,10 @@ const MainPage = () => {
                 });
                 console.log('Profile data:', response.data);
                 setRemainingVacationDays(response.data.countVacationDays || 0);
-                setName(response.data.lastName + " " + response.data.firstName + " " + response.data.middleName)
+                setName(
+                    `${response.data.lastName} ${response.data.firstName} ${response.data.middleName}`
+                );
+                setRoleId(response.data.roleId || null);
                 setLoading(false);
             } catch (error) {
                 console.error('Ошибка при загрузке профиля:', error);
@@ -221,7 +225,7 @@ const MainPage = () => {
             endDate: endDate.toISOString(),
         };
 
-        const apiUrl = 'http://109.73.203.81:9090/v1/vacation'; // Для локального тестирования: http://localhost:9090
+        const apiUrl = 'http://109.73.203.81:9090/v1/vacation';
         console.log('Submitting:', { payload, token, url: apiUrl });
 
         try {
@@ -235,7 +239,6 @@ const MainPage = () => {
             alert('Заявка на отпуск успешно отправлена!');
             setForm({ start: '', end: '' });
             setSelectedDates([]);
-            // Обновляем remainingVacationDays после успешной заявки
             const profileResponse = await axios.get('http://109.73.203.81:9090/v1/profile/me', {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -309,6 +312,14 @@ const MainPage = () => {
         navigate('/login');
     };
 
+    const handleAdminPageClick = () => {
+        navigate('/AdminPage');
+    };
+
+    const handleHRPageClick = () => {
+        navigate('/HRdepartmentPage');
+    };
+
     if (loading) {
         return <div>Загрузка...</div>;
     }
@@ -320,24 +331,42 @@ const MainPage = () => {
     return (
         <>
             <header className="flex justify-between items-center p-[1rem] bg-white">
-                <img
-                    src={logo}
-                    alt="Logo"
-                    className="cursor-pointer"
-                    onClick={handleLogoClick}
-                />
+                <div className="flex items-center space-x-4">
+                    <img
+                        src={logo}
+                        alt="Logo"
+                        className="cursor-pointer"
+                        onClick={handleLogoClick}
+                    />
+                    {roleId === 2 && (
+                        <button
+                            onClick={handleAdminPageClick}
+                            className="w-[240px] h-[48px] bg-[#023973] text-white font-[Montserrat] font-medium rounded-[10px] text-lg"
+                        >
+                            Панель администратора
+                        </button>
+                    )}
+                    {roleId === 3 && (
+                        <button
+                            onClick={handleHRPageClick}
+                            className="w-[240px] h-[48px] bg-[#023973] text-white font-[Montserrat] font-medium rounded-[10px] text-lg"
+                        >
+                            Отдел кадров
+                        </button>
+                    )}
+                </div>
                 <div className="relative">
                     <div
-                        className="rounded-[6px] w-[232px] h-[40px] border-[2px] pt-[7px] pl-[20px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer"
+                        className="rounded-[6px] w-[280px] h-[48px] border-[2px] pt-[10px] pl-[24px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer text-lg truncate"
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                     >
-                        {Name}
+                        {name || 'Профиль'}
                     </div>
                     {isProfileMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-[232px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg">
+                        <div className="absolute right-0 mt-2 w-[280px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg z-10">
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 font-[Montserrat] text-[#023973] hover:bg-gray-100"
+                                className="w-full text-left px-4 py-2 font-[Montserrat] text-[#023973] text-lg hover:bg-gray-100"
                             >
                                 Выйти
                             </button>

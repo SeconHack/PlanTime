@@ -215,10 +215,23 @@ const Registration = () => {
         }
     };
 
+    // Обработка возврата на HRdepartmentPage
+    const handleBackToHR = () => {
+        navigate('/HRdepartmentPage');
+    };
+
     return (
         <div className='flex min-h-screen flex-col justify-center items-center bg-[#023973]'>
             <div className='w-[520px] bg-[#FDE0B5] rounded-[45px] pl-[60px] pt-[30px] space-y-[30px] pb-[30px]'>
-                <h4 className="text-2xl font-semibold font-[Montserrat] text-[#023973]">Создать аккаунт</h4>
+                <div className="flex justify-between items-center">
+                    <h4 className="text-2xl font-semibold font-[Montserrat] text-[#023973]">Создать аккаунт</h4>
+                    <button
+                        onClick={handleBackToHR}
+                        className="mr-[30px] w-[120px] h-[40px] bg-[#023973] text-white font-[Montserrat] font-medium rounded-[10px] text-base"
+                    >
+                        Назад
+                    </button>
+                </div>
                 <form>
                     <div className="relative">
                         <CustomInput

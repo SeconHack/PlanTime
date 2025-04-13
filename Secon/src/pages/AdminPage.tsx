@@ -11,6 +11,9 @@ const AdminPage = () => {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [name, setName] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthorized, setIsAuthorized] = useState(false); // Новое состояние для проверки роли
 
     // Форматирование даты в читаемый формат (DD.MM.YYYY)
     const formatDate = (isoDate) => {
@@ -24,29 +27,56 @@ const AdminPage = () => {
         });
     };
 
-    // Получение данных из бэкенда
+    // Получение данных профиля и коллизий
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
         if (!token) {
-            alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
-            navigate('/login');
+            navigate('/login', { replace: true });
             return;
         }
 
-        setIsLoading(true);
-        setError(null);
-        const apiUrl = 'http://109.73.203.81:9090/api/report/vacations/intersections'; // Для локального тестирования: http://localhost:9090
-        axios
-            .get(apiUrl, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            })
-            .then((response) => {
+        setIsAuthenticated(true);
+
+        // Запрос профиля для получения имени и роли
+        const fetchProfile = async () => {
+            try {
+                const profileUrl = 'http://109.73.203.81:9090/v1/profile/me';
+                const response = await axios.get(profileUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                setName(
+                    `${response.data.lastName} ${response.data.firstName} ${response.data.middleName}`
+                );
+                if (response.data.roleId !== 2) {
+                    navigate('/MainPage', { replace: true });
+                } else {
+                    setIsAuthorized(true);
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке профиля:', error);
+                if (error.response?.status === 401) {
+                    navigate('/login', { replace: true });
+                }
+            }
+        };
+
+        // Запрос коллизий
+        const fetchCollisions = async () => {
+            setIsLoading(true);
+            setError(null);
+            const apiUrl = 'http://109.73.203.81:9090/api/report/vacations/intersections';
+            try {
+                const response = await axios.get(apiUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
                 const collisionLists = response.data;
                 console.log('Collision data:', collisionLists);
-                // Преобразуем данные
                 const transformedLists = collisionLists.map((list) =>
                     list.map((item) => ({
                         id: item.userId,
@@ -58,7 +88,6 @@ const AdminPage = () => {
                         endDate: item.vacationEndDate,
                     }))
                 );
-                // Формируем группы
                 const groupsObject = transformedLists.reduce((acc, list, index) => {
                     acc[`Группа ${index + 1}`] = list;
                     return acc;
@@ -70,15 +99,13 @@ const AdminPage = () => {
                     setSelectedGroup(null);
                 }
                 setIsLoading(false);
-            })
-            .catch((error) => {
+            } catch (error) {
                 console.error('Ошибка при получении коллизий:', error);
                 setIsLoading(false);
                 if (error.response) {
                     console.error('Response error:', error.response.data, error.response.status);
                     if (error.response.status === 401) {
-                        alert('Сессия истекла, пожалуйста, войдите снова.');
-                        navigate('/login');
+                        navigate('/login', { replace: true });
                     } else {
                         setError(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
                     }
@@ -89,7 +116,11 @@ const AdminPage = () => {
                     console.error('Request setup error:', error.message);
                     setError(`Ошибка: ${error.message}`);
                 }
-            });
+            }
+        };
+
+        fetchProfile();
+        fetchCollisions();
     }, [navigate]);
 
     // Проверка коллизий
@@ -150,12 +181,11 @@ const AdminPage = () => {
 
         const token = localStorage.getItem('accessToken');
         if (!token) {
-            alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
-            navigate('/login');
+            navigate('/login', { replace: true });
             return;
         }
 
-        const apiUrl = `http://109.73.203.81:9090/api/report/vacations/${selectedEmployee.vacationId}`; // Для локального тестирования: http://localhost:9090
+        const apiUrl = `http://109.73.203.81:9090/api/report/vacations/${selectedEmployee.vacationId}`;
         console.log('Sending delete request:', {
             url: apiUrl,
             vacationId: selectedEmployee.vacationId,
@@ -177,8 +207,7 @@ const AdminPage = () => {
             if (error.response) {
                 console.error('Response error:', error.response.data, error.response.status);
                 if (error.response.status === 401) {
-                    alert('Сессия истекла, пожалуйста, войдите снова.');
-                    navigate('/login');
+                    navigate('/login', { replace: true });
                 } else if (error.response.status === 400) {
                     alert('Некорректные данные в запросе.');
                 } else if (error.response.status === 403) {
@@ -237,31 +266,48 @@ const AdminPage = () => {
     // Обработка выхода
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
-        alert('Выход из профиля');
-        navigate('/login');
+        navigate('/login', { replace: true });
     };
+
+    // Обработка возврата на MainPage
+    const handleBackToMain = () => {
+        navigate('/MainPage');
+    };
+
+    // Если пользователь не авторизован или не имеет права доступа, не рендерим страницу
+    if (!isAuthenticated || !isAuthorized) {
+        return null;
+    }
 
     return (
         <>
             <header className="flex justify-between items-center p-[1rem] bg-white">
-                <img
-                    src={logo}
-                    alt="Logo"
-                    className="cursor-pointer"
-                    onClick={handleLogoClick}
-                />
+                <div className="flex items-center space-x-4">
+                    <img
+                        src={logo}
+                        alt="Logo"
+                        className="cursor-pointer"
+                        onClick={handleLogoClick}
+                    />
+                    <button
+                        onClick={handleBackToMain}
+                        className="w-[240px] h-[48px] bg-[#023973] text-white font-[Montserrat] font-medium rounded-[10px] text-lg"
+                    >
+                        На главную
+                    </button>
+                </div>
                 <div className="relative">
                     <div
-                        className="rounded-[6px] w-[232px] h-[40px] border-[2px] pt-[7px] pl-[20px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer"
+                        className="rounded-[6px] w-[280px] h-[48px] border-[2px] pt-[10px] pl-[24px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer text-lg truncate"
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                     >
-                        Профиль
+                        {name || 'Профиль'}
                     </div>
                     {isProfileMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-[232px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg">
+                        <div className="absolute right-0 mt-2 w-[280px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg z-10">
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 font-[Montserrat] text-[#023973] hover:bg-gray-100"
+                                className="w-full text-left px-4 py-2 font-[Montserrat] text-[#023973] text-lg hover:bg-gray-100"
                             >
                                 Выйти
                             </button>
