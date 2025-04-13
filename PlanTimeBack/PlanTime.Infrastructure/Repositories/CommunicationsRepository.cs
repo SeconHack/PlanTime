@@ -17,16 +17,16 @@ public class CommunicationsRepository(IDapperContext<IDapperSettings> dapperCont
     /// <summary>
     /// Получает список дочерних подразделений по идентификатору.
     /// </summary>
-    public async Task<List<DbCommunications>> GetByChildIdAsync(int childId)
+    public async Task<List<DbCommunications>> GetByChildIdAsync(int id)
     {
-        return await dapperContext.ListOrEmpty<DbCommunications>(new QueryObject(Communications.GetByChildId, new { childId }));
+        return await dapperContext.ListOrEmpty<DbCommunications>(new QueryObject(Communications.GetByChildId, new { id }));
     }
 
     /// <summary>
     /// Получает список родительских подразделений по идентификатору.
     /// </summary>
-    public async Task<List<DbCommunications>> GetByParentIdAsync(int parentId)
+    public async Task<List<DbCommunications>> GetByParentIdAsync(int id)
     {
-        return await dapperContext.ListOrEmpty<DbCommunications>(new QueryObject(Communications.GetByParentId, new { parentId }));
+        return await dapperContext.ListOrEmpty<DbCommunications>(new QueryObject(Communications.GetByParentId,new { id }));
     }
 }

@@ -42,17 +42,27 @@ public class ReportService(IAccountRepository accountRepository,
             foreach (var communication in communications)
             {
                 var child =await divisionRepository.GetByIdAsync(communication.ChildId);
-                var file = await minioRepository.GetFileAsync(BucketName,$"Подразделение {child.DivisionName}.xlsx" );
+                var tmpName = string.Concat(child.DivisionName.Split(Path.GetInvalidFileNameChars()));
+                tmpName = $"Подразделение {tmpName}.xlsx";
+                var objectName = $"{"2025".TrimEnd('/')}/{tmpName}";
+                Console.WriteLine(objectName);
+                var file = await minioRepository.GetFileAsync(BucketName, objectName);
                 if (file != null)
                 {
+                    Console.WriteLine("in");
                     var newBook = new XLWorkbook(file);
-                    newBook.Save();
                     var newworksheet = newBook.Worksheet(1);
                     // получим все строки в файле
                     var rows = newworksheet.RangeUsed().RowsUsed(); // Skip header row
                     // пример чтения строк файла.
+                    bool firstRow = true;
                     foreach (var row in rows)
                     {
+                        if (firstRow)
+                        {
+                            firstRow = false;
+                            continue;
+                        }
                         worksheet.Cell(rowIndex, 1).Value = row.Cell(1).Value;
                         worksheet.Cell(rowIndex, 2).Value = row.Cell(2).Value;
                         worksheet.Cell(rowIndex, 3).Value = row.Cell(3).Value;

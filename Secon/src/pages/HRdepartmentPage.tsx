@@ -1,5 +1,5 @@
 import logo from '../images/logo.png';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -10,6 +10,47 @@ const HRdepartmentPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
+    const [name, setName] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // Для проверки авторизации
+    const [isAuthorized, setIsAuthorized] = useState(false); // Для проверки роли
+
+    // Получение данных профиля и проверка роли
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            navigate('/login', { replace: true });
+            return;
+        }
+
+        setIsAuthenticated(true);
+
+        const fetchProfile = async () => {
+            try {
+                const profileUrl = 'http://109.73.203.81:9090/v1/profile/me';
+                const response = await axios.get(profileUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                setName(
+                    `${response.data.lastName} ${response.data.firstName} ${response.data.middleName}`
+                );
+                if (response.data.roleId === 2) {
+                    navigate('/MainPage', { replace: true });
+                } else {
+                    setIsAuthorized(true);
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке профиля:', error);
+                if (error.response?.status === 401) {
+                    navigate('/login', { replace: true });
+                }
+            }
+        };
+
+        fetchProfile();
+    }, [navigate]);
 
     // Обработка выбора файла
     const handleFileChange = (event) => {
@@ -30,8 +71,7 @@ const HRdepartmentPage = () => {
 
         const token = localStorage.getItem('accessToken');
         if (!token) {
-            alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
-            navigate('/login');
+            navigate('/login', { replace: true });
             return;
         }
 
@@ -59,8 +99,7 @@ const HRdepartmentPage = () => {
             if (error.response) {
                 console.error('Response error:', error.response.data, error.response.status);
                 if (error.response.status === 401) {
-                    alert('Сессия истекла, пожалуйста, войдите снова.');
-                    navigate('/login');
+                    navigate('/login', { replace: true });
                 } else if (error.response.status === 400) {
                     setError('Некорректный формат файла или данные.');
                 } else if (error.response.status === 403) {
@@ -88,31 +127,53 @@ const HRdepartmentPage = () => {
     // Обработка выхода
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
-        alert('Выход из профиля');
-        navigate('/login');
+        navigate('/login', { replace: true });
     };
+
+    // Переход на страницу регистрации
+    const handleAddUser = () => {
+        navigate('/Registration');
+    };
+
+    // Обработка возврата на MainPage
+    const handleBackToMain = () => {
+        navigate('/MainPage');
+    };
+
+    // Если пользователь не авторизован или не имеет права доступа, не рендерим страницу
+    if (!isAuthenticated || !isAuthorized) {
+        return null;
+    }
 
     return (
         <>
             <header className="flex justify-between items-center p-[1rem] bg-white">
-                <img
-                    src={logo}
-                    alt="Logo"
-                    className="cursor-pointer"
-                    onClick={handleLogoClick}
-                />
+                <div className="flex items-center space-x-4">
+                    <img
+                        src={logo}
+                        alt="Logo"
+                        className="cursor-pointer"
+                        onClick={handleLogoClick}
+                    />
+                    <button
+                        onClick={handleBackToMain}
+                        className="w-[240px] h-[48px] bg-[#023973] text-white font-[Montserrat] font-medium rounded-[10px] text-lg"
+                    >
+                        На главную
+                    </button>
+                </div>
                 <div className="relative">
                     <div
-                        className="rounded-[6px] w-[232px] h-[40px] border-[2px] pt-[7px] pl-[20px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer"
+                        className="rounded-[6px] w-[280px] h-[48px] border-[2px] pt-[10px] pl-[24px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer text-lg truncate"
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                     >
-                        Профиль
+                        {name || 'Профиль'}
                     </div>
                     {isProfileMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-[232px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg">
+                        <div className="absolute right-0 mt-2 w-[280px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg z-10">
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 font-[Montserrat] text-[#023973] hover:bg-gray-100"
+                                className="w-full text-left px-4 py-2 font-[Montserrat] text-[#023973] text-lg hover:bg-gray-100"
                             >
                                 Выйти
                             </button>
@@ -126,7 +187,13 @@ const HRdepartmentPage = () => {
                         <h4 className="text-2xl font-semibold font-[Montserrat] text-[#023973] mb-[20px]">
                             Личный кабинет HR
                         </h4>
-                        <div className="bg-white border-[2px] border-[#023973] rounded-[6px] p-4">
+                        <div className="bg-white border-[2px] border-[#023973] rounded-[6px] p-4 mb-4">
+                            <button
+                                onClick={handleAddUser}
+                                className="w-full h-[40px] text-base text-white font-medium rounded-[10px] font-[Montserrat] bg-[#023973] cursor-pointer mb-4"
+                            >
+                                Добавить нового пользователя
+                            </button>
                             <div className="mb-4">
                                 <label
                                     htmlFor="file-upload"
