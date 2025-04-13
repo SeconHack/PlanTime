@@ -3,6 +3,8 @@ using DbUp;
 using Durak.Dapper;
 using Durak.Dapper.Interfaces;
 using Minio;
+using PlanTime.Application.Services;
+using PlanTime.Application.Services.Interfaces;
 using PlanTime.Domain.Repositories;
 using PlanTime.Infrastructure.Factories;
 using PlanTime.Infrastructure.Factories.Interfaces;
