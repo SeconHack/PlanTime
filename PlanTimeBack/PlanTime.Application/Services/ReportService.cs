@@ -42,7 +42,7 @@ public class ReportService(IAccountRepository accountRepository,
             foreach (var communication in communications)
             {
                 var child =await divisionRepository.GetByIdAsync(communication.ChildId);
-                var file = await minioRepository.GetFileAsync(BucketName, child.DivisionName);
+                var file = await minioRepository.GetFileAsync(BucketName,$"Подразделение {child.DivisionName}.xlsx" );
                 if (file != null)
                 {
                     var newBook = new XLWorkbook(file);
@@ -88,9 +88,9 @@ public class ReportService(IAccountRepository accountRepository,
             vacations.RemoveAt(0);
             DateTime startDate = vacationInfos[0].VacationStartDate;
             DateTime endDate = vacationInfos[0].VacationEndDate;
-            for(int j = 0 ; j < vacations.Count; j++)
-                if (endDate > vacations[j].VacationStartDate&&
-                    startDate < vacations[j].VacationStartDate)
+            for(int j = 0; j < vacations.Count; j++)
+                if (endDate >= vacations[j].VacationStartDate&&
+                    startDate <= vacations[j].VacationStartDate)
                 {
                     endDate = vacations[j].VacationEndDate;
                     vacationInfos.Add(vacations[j]);
