@@ -1,15 +1,16 @@
 import logo from '../images/logo.png';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Для навигации
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const MainPage = () => {
-    const navigate = useNavigate(); // Хук для навигации
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false); // Состояние для выпадающего меню профиля
+    const navigate = useNavigate();
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const [currentMonth, setCurrentMonth] = useState(1);
+    const [remainingVacationDays, setRemainingVacationDays] = useState(0); // Динамическое значение
+    const [loading, setLoading] = useState(true); // Для отслеживания загрузки
+    const [error, setError] = useState(null); // Для ошибок API
 
-    // Состояние для текущего месяца (0 - Январь, 1 - Февраль и т.д.)
-    const [currentMonth, setCurrentMonth] = useState(1); // Начинаем с февраля
-
-    // Массив месяцев и их количества дней (2025 - не високосный год)
     const months = [
         { name: 'ЯНВАРЬ', days: 31 },
         { name: 'ФЕВРАЛЬ', days: 28 },
@@ -25,15 +26,47 @@ const MainPage = () => {
         { name: 'ДЕКАБРЬ', days: 31 },
     ];
 
-    // Генерация массива дней для текущего месяца
     const days = Array.from({ length: months[currentMonth].days }, (_, i) => i + 1);
 
     const [form, setForm] = useState({ start: '', end: '' });
-    const [selectedDates, setSelectedDates] = useState([]); // Храним даты как объекты { month, day }
-    const remainingVacationDays = 28; // Пример: общее количество дней отпуска
-    const maxSelectableDays = remainingVacationDays - 1; // Максимум можно выбрать на 1 день меньше
+    const [selectedDates, setSelectedDates] = useState([]);
+    const maxSelectableDays = remainingVacationDays > 0 ? remainingVacationDays - 1 : 0;
 
-    // Вычисляем количество дней между двумя датами
+    // Загрузка countVacationDays при монтировании компонента
+    useEffect(() => {
+        const fetchVacationDays = async () => {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
+                navigate('/login');
+                return;
+            }
+
+            try {
+                const apiUrl = 'http://109.73.203.81:9090/v1/profile/me'; // Для локального тестирования: http://localhost:9090
+                const response = await axios.get(apiUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                console.log('Profile data:', response.data);
+                setRemainingVacationDays(response.data.countVacationDays || 0);
+                setLoading(false);
+            } catch (error) {
+                console.error('Ошибка при загрузке профиля:', error);
+                setError('Не удалось загрузить данные профиля.');
+                setLoading(false);
+                if (error.response?.status === 401) {
+                    alert('Сессия истекла, пожалуйста, войдите снова.');
+                    navigate('/login');
+                }
+            }
+        };
+
+        fetchVacationDays();
+    }, [navigate]);
+
     const calculateUsedDays = (start, end) => {
         if (!start || !end) return 0;
 
@@ -44,28 +77,21 @@ const MainPage = () => {
             return end.day - start.day + 1;
         }
 
-        // Если даты в разных месяцах
         let totalDays = 0;
-        // Дни в первом месяце (от start.day до конца месяца)
         totalDays += months[startMonthIndex].days - start.day + 1;
-        // Дни в последнем месяце (от начала до end.day)
         totalDays += end.day;
-        // Дни в промежуточных месяцах (если есть)
         for (let i = startMonthIndex + 1; i < endMonthIndex; i++) {
             totalDays += months[i].days;
         }
         return totalDays;
     };
 
-    // Функция для обработки клика по дню
     const handleDayClick = (day) => {
         let updatedDates = [...selectedDates];
 
         if (updatedDates.length < 2) {
-            // Добавляем новую дату
             updatedDates.push({ month: currentMonth, day });
         } else {
-            // Если уже выбрано две даты, заменяем ближайшую
             const [start, end] = updatedDates;
             const startDateValue = start.month * 100 + start.day;
             const endDateValue = end.month * 100 + end.day;
@@ -75,31 +101,27 @@ const MainPage = () => {
             const distToEnd = Math.abs(newDateValue - endDateValue);
 
             if (distToStart <= distToEnd) {
-                updatedDates[0] = { month: currentMonth, day }; // Заменяем начало
+                updatedDates[0] = { month: currentMonth, day };
             } else {
-                updatedDates[1] = { month: currentMonth, day }; // Заменяем конец
+                updatedDates[1] = { month: currentMonth, day };
             }
         }
 
-        // Сортируем даты по возрастанию
         updatedDates.sort((a, b) => {
             const aValue = a.month * 100 + a.day;
             const bValue = b.month * 100 + b.day;
             return aValue - bValue;
         });
 
-        // Проверяем, не превышает ли диапазон максимальное количество дней
         if (updatedDates.length === 2) {
             let [start, end] = updatedDates;
             let totalDays = calculateUsedDays(start, end);
 
             if (totalDays > maxSelectableDays) {
-                // Корректируем вторую дату, чтобы уложиться в лимит (maxSelectableDays)
                 let remainingDays = maxSelectableDays;
                 let newEndMonth = start.month;
                 let newEndDay = start.day;
 
-                // Добавляем дни, начиная с начальной даты
                 while (remainingDays > 0) {
                     if (newEndDay < months[newEndMonth].days) {
                         newEndDay++;
@@ -107,11 +129,10 @@ const MainPage = () => {
                     } else {
                         newEndMonth++;
                         newEndDay = 0;
-                        if (newEndMonth >= months.length) break; // Если вышли за пределы года
+                        if (newEndMonth >= months.length) break;
                     }
                 }
 
-                // Если вышли за пределы года или месяца, корректируем
                 if (newEndMonth >= months.length) {
                     newEndMonth = months.length - 1;
                     newEndDay = months[newEndMonth].days;
@@ -125,10 +146,9 @@ const MainPage = () => {
 
         setSelectedDates(updatedDates);
 
-        // Обновляем даты в полях "Начало" и "Конец"
         if (updatedDates.length > 0) {
-            const monthIndexStart = updatedDates[0].month + 1; // Январь - 1, Февраль - 2 и т.д.
-            const startDate = `2025-${monthIndexStart.toString().padStart(2, '0')}-${updatedDates[0].day.toString().padStart(2, '0')}`; // Формат YYYY-MM-DD
+            const monthIndexStart = updatedDates[0].month + 1;
+            const startDate = `2025-${monthIndexStart.toString().padStart(2, '0')}-${updatedDates[0].day.toString().padStart(2, '0')}`;
             const endDate = updatedDates[1]
                 ? `2025-${(updatedDates[1].month + 1).toString().padStart(2, '0')}-${updatedDates[1].day.toString().padStart(2, '0')}`
                 : '';
@@ -138,7 +158,6 @@ const MainPage = () => {
         }
     };
 
-    // Проверка, входит ли день в выделенный диапазон
     const isDayInRange = (day, monthIndex) => {
         if (selectedDates.length < 2) {
             return selectedDates.some((date) => date.month === monthIndex && date.day === day);
@@ -153,30 +172,113 @@ const MainPage = () => {
     };
 
     const usedVacationDays = calculateUsedDays(selectedDates[0], selectedDates[1]);
-    const daysLeft = remainingVacationDays - usedVacationDays; // Оставшиеся дни
+    const daysLeft = remainingVacationDays - usedVacationDays;
 
-    // Переключение на предыдущий месяц
     const handlePrevMonth = () => {
         if (currentMonth > 0) {
             setCurrentMonth(currentMonth - 1);
         }
     };
 
-    // Переключение на следующий месяц
     const handleNextMonth = () => {
         if (currentMonth < months.length - 1) {
             setCurrentMonth(currentMonth + 1);
         }
     };
 
-    function handleSubmit(e) {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(form);
-    }
 
-    function handleChange(e) {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    }
+        if (!form.start || !form.end) {
+            alert('Пожалуйста, выберите даты начала и конца отпуска.');
+            return;
+        }
+
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
+            navigate('/login');
+            return;
+        }
+
+        const startDate = new Date(form.start);
+        const endDate = new Date(form.end);
+        if (isNaN(startDate) || isNaN(endDate)) {
+            alert('Пожалуйста, выберите корректные даты.');
+            return;
+        }
+
+        const startDateOnly = new Date(form.start.split('T')[0]);
+        const endDateOnly = new Date(form.end.split('T')[0]);
+        if (startDateOnly.getTime() >= endDateOnly.getTime()) {
+            alert('Дата окончания должна быть хотя бы на день позже даты начала.');
+            return;
+        }
+
+        const payload = {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
+        };
+
+        const apiUrl = 'http://109.73.203.81:9090/v1/vacation'; // Для локального тестирования: http://localhost:9090
+        console.log('Submitting:', { payload, token, url: apiUrl });
+
+        try {
+            const response = await axios.post(apiUrl, payload, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            console.log('Заявка успешно отправлена:', response.data);
+            alert('Заявка на отпуск успешно отправлена!');
+            setForm({ start: '', end: '' });
+            setSelectedDates([]);
+            // Обновляем remainingVacationDays после успешной заявки
+            const profileResponse = await axios.get('http://109.73.203.81:9090/v1/profile/me', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            setRemainingVacationDays(profileResponse.data.countVacationDays || 0);
+        } catch (error) {
+            console.error('Ошибка при отправке заявки:', error);
+            if (error.response) {
+                console.error('Response error:', error.response.data, error.response.status);
+                if (error.response.status === 401) {
+                    alert('Сессия истекла, пожалуйста, войдите снова.');
+                    navigate('/login');
+                } else if (error.response.status === 400) {
+                    alert('Некорректные данные в запросе. Проверьте выбранные даты.');
+                } else if (error.response.status === 403) {
+                    alert('Доступ запрещен. Проверьте правильность токена.');
+                } else {
+                    alert(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
+                }
+            } else if (error.request) {
+                console.error('No response received:', error.request);
+                alert('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
+            } else {
+                console.error('Request setup error:', error.message);
+                alert(`Ошибка при отправке заявки: ${error.message}`);
+            }
+        }
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+
+        if (value) {
+            const [year, month, day] = value.split('-').map(Number);
+            if (name === 'start') {
+                setSelectedDates([{ month: month - 1, day }, selectedDates[1] || null]);
+            } else if (name === 'end') {
+                setSelectedDates([selectedDates[0] || null, { month: month - 1, day }]);
+            }
+        }
+    };
 
     function InfiniteDivs() {
         return (
@@ -196,17 +298,23 @@ const MainPage = () => {
         );
     }
 
-    // Обработка клика по логотипу
     const handleLogoClick = () => {
-        window.location.href = 'https://penza.tns-e.ru/population/'; // Перенаправление на сайт
+        window.location.href = 'https://penza.tns-e.ru/population/';
     };
 
-    // Обработка выхода
     const handleLogout = () => {
+        localStorage.removeItem('accessToken');
         alert('Выход из профиля');
-        // Здесь можно добавить реальную логику выхода, например, очистку токена или редирект на страницу логина
-        navigate('/login'); // Предполагаемый маршрут для страницы логина
+        navigate('/login');
     };
+
+    if (loading) {
+        return <div>Загрузка...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
+    }
 
     return (
         <>
@@ -238,7 +346,6 @@ const MainPage = () => {
             </header>
             <section className="h-screen bg-[#FDE0B5] flex items-center justify-center">
                 <div className="box-border flex items-start justify-between min-w-[1128px] bg-white pt-[60px]">
-                    {/* Календарь */}
                     <div className="box-border flex flex-col items-stretch justify-start w-[872px] pb-[128px]">
                         <div className="flex items-center justify-center space-x-[20px]">
                             <button
@@ -266,7 +373,6 @@ const MainPage = () => {
                         <InfiniteDivs />
                     </div>
 
-                    {/* Форма */}
                     <div className="w-[520px] pr-[60px] space-y-[30px]">
                         <h4 className="text-2xl font-semibold font-[Montserrat] text-[#023973]">
                             Заявка
@@ -296,7 +402,6 @@ const MainPage = () => {
                                     className="w-[400px] h-[40px] border-[2px] border-[#023973] rounded-[6px] px-[10px] font-[Montserrat] text-[#023973] focus:outline-none"
                                 />
                             </div>
-                            {/* Отображение оставшихся дней */}
                             <div className="space-y-[6px]">
                                 <label className="block text-sm font-medium text-left text-[#023973] font-[Montserrat]">
                                     Отчет

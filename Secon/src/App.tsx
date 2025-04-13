@@ -3,6 +3,7 @@ import MainPage from './pages/MainPage'
 import PersonalData from './pages/PersonalData';
 import Registration from './pages/Registration';
 import AdminPage from "./pages/AdminPage.tsx";
+import HRdepartmentPage from "./pages/HRdepartmentPage";
 
 import {
   BrowserRouter as Router,
@@ -42,6 +43,11 @@ function App() {
                 <Route
                     path="/AdminPage"
                     element={<AdminPage/>}
+                />
+
+                <Route
+                    path="/HRdepartmentPage"
+                    element={<HRdepartmentPage/>}
                 />
                 {/* <Route
                     path='/Posts/:id'

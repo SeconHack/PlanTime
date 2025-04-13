@@ -1,42 +1,107 @@
 import logo from '../images/logo.png';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Для навигации
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const AdminPage = () => {
-    const navigate = useNavigate(); // Хук для навигации
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false); // Состояние для выпадающего меню профиля
+    const navigate = useNavigate();
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const [groups, setGroups] = useState({});
+    const [selectedGroup, setSelectedGroup] = useState(null);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Тестовые данные для групп коллизий
-    const initialGroups = {
-        'Группа 1': [
-            { id: 1, lastName: 'Иванов', email: 'ivanov@example.com', startDate: '2025-02-01', endDate: '2025-02-05' },
-            { id: 2, lastName: 'Петров', email: 'petrov@example.com', startDate: '2025-02-03', endDate: '2025-02-07' },
-            { id: 3, lastName: 'Сидоров', email: 'sidorov@example.com', startDate: '2025-02-04', endDate: '2025-02-06' },
-        ],
-        'Группа 2': [
-            { id: 4, lastName: 'Козлов', email: 'kozlov@example.com', startDate: '2025-02-10', endDate: '2025-02-12' },
-            { id: 5, lastName: 'Смирнов', email: 'smirnov@example.com', startDate: '2025-02-10', endDate: '2025-02-15' },
-        ],
-        'Группа 3': [
-            { id: 6, lastName: 'Федоров', email: 'fedorov@example.com', startDate: '2025-02-05', endDate: '2025-02-09' },
-            { id: 7, lastName: 'Михайлов', email: 'mikhailov@example.com', startDate: '2025-02-07', endDate: '2025-02-10' },
-        ],
+    // Форматирование даты в читаемый формат (DD.MM.YYYY)
+    const formatDate = (isoDate) => {
+        if (!isoDate) return '—';
+        const date = new Date(isoDate);
+        if (isNaN(date)) return '—';
+        return date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        });
     };
 
-    const [groups, setGroups] = useState(initialGroups);
-    const [selectedGroup, setSelectedGroup] = useState('Группа 1'); // Текущая активная группа
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    // Получение данных из бэкенда
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
+            navigate('/login');
+            return;
+        }
 
-    // Функция для определения коллизий внутри текущей группы
+        setIsLoading(true);
+        setError(null);
+        const apiUrl = 'http://109.73.203.81:9090/api/report/vacations/intersections'; // Для локального тестирования: http://localhost:9090
+        axios
+            .get(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then((response) => {
+                const collisionLists = response.data;
+                console.log('Collision data:', collisionLists);
+                // Преобразуем данные
+                const transformedLists = collisionLists.map((list) =>
+                    list.map((item) => ({
+                        id: item.userId,
+                        vacationId: item.vacationId,
+                        email: item.email || 'Не указан',
+                        lastName: item.lastName || 'Сотрудник',
+                        divisionName: item.divisionName || 'Не указан',
+                        startDate: item.vacationStartDate,
+                        endDate: item.vacationEndDate,
+                    }))
+                );
+                // Формируем группы
+                const groupsObject = transformedLists.reduce((acc, list, index) => {
+                    acc[`Группа ${index + 1}`] = list;
+                    return acc;
+                }, {});
+                setGroups(groupsObject);
+                if (transformedLists.length > 0) {
+                    setSelectedGroup('Группа 1');
+                } else {
+                    setSelectedGroup(null);
+                }
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Ошибка при получении коллизий:', error);
+                setIsLoading(false);
+                if (error.response) {
+                    console.error('Response error:', error.response.data, error.response.status);
+                    if (error.response.status === 401) {
+                        alert('Сессия истекла, пожалуйста, войдите снова.');
+                        navigate('/login');
+                    } else {
+                        setError(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
+                    }
+                } else if (error.request) {
+                    console.error('No response received:', error.request);
+                    setError('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
+                } else {
+                    console.error('Request setup error:', error.message);
+                    setError(`Ошибка: ${error.message}`);
+                }
+            });
+    }, [navigate]);
+
+    // Проверка коллизий
     const hasCollision = (employee, groupName) => {
         const currentGroup = groups[groupName];
         return currentGroup.some((otherEmployee) => {
-            if (employee.id === otherEmployee.id) return false; // Пропускаем сравнение с самим собой
+            if (employee.id === otherEmployee.id) return false;
             const start1 = new Date(employee.startDate);
             const end1 = new Date(employee.endDate);
             const start2 = new Date(otherEmployee.startDate);
             const end2 = new Date(otherEmployee.endDate);
-            return start1 <= end2 && start2 <= end1; // Проверка пересечения дат
+            return start1 <= end2 && start2 <= end1;
         });
     };
 
@@ -45,49 +110,91 @@ const AdminPage = () => {
         setSelectedEmployee(employee);
     };
 
-    // Удаление сотрудника из группы и проверка, нужно ли удалить группу
+    // Удаление сотрудника из группы
     const removeEmployeeFromGroup = () => {
         if (!selectedEmployee) {
             alert('Пожалуйста, выберите сотрудника.');
             return;
         }
 
-        // Удаляем сотрудника из текущей группы
-        const updatedGroup = groups[selectedGroup].filter((emp) => emp.id !== selectedEmployee.id);
+        const updatedGroup = groups[selectedGroup].filter(
+            (emp) => !(emp.id === selectedEmployee.id && emp.vacationId === selectedEmployee.vacationId)
+        );
 
-        // Если в группе остался 1 сотрудник, удаляем группу
-        if (updatedGroup.length === 1) {
+        if (updatedGroup.length <= 1) {
             const newGroups = { ...groups };
-            delete newGroups[selectedGroup]; // Удаляем группу
+            delete newGroups[selectedGroup];
             setGroups(newGroups);
 
-            // Переключаемся на следующую доступную группу
             const groupNames = Object.keys(newGroups);
             if (groupNames.length > 0) {
-                setSelectedGroup(groupNames[0]); // Переключаемся на первую группу
+                setSelectedGroup(groupNames[0]);
             } else {
-                setSelectedGroup(null); // Если групп больше нет
+                setSelectedGroup(null);
             }
         } else {
-            // Если в группе осталось больше 1 сотрудника, просто обновляем группу
             setGroups({
                 ...groups,
                 [selectedGroup]: updatedGroup,
             });
         }
-        setSelectedEmployee(null); // Сбрасываем выбор
+        setSelectedEmployee(null);
     };
 
-    // Отправка запроса на изменение и удаление сотрудника из группы
-    const handleSendRequest = () => {
-        if (selectedEmployee) {
-            console.log(
-                `Отправка запроса на изменение на ${selectedEmployee.email} по отпуску с ${selectedEmployee.startDate} по ${selectedEmployee.endDate}`
-            );
-            alert(`Запрос на изменение отправлен на ${selectedEmployee.email}`);
-            removeEmployeeFromGroup();
-        } else {
+    // Отправка запроса на удаление отпуска
+    const handleSendRequest = async () => {
+        if (!selectedEmployee) {
             alert('Пожалуйста, выберите сотрудника для отправки запроса.');
+            return;
+        }
+
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
+            navigate('/login');
+            return;
+        }
+
+        const apiUrl = `http://109.73.203.81:9090/api/report/vacations/${selectedEmployee.vacationId}`; // Для локального тестирования: http://localhost:9090
+        console.log('Sending delete request:', {
+            url: apiUrl,
+            vacationId: selectedEmployee.vacationId,
+            email: selectedEmployee.email,
+        });
+
+        try {
+            await axios.delete(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            console.log('Отпуск успешно удален');
+            alert(`Запрос на удаление отпуска отправлен для ${selectedEmployee.email}`);
+            removeEmployeeFromGroup();
+        } catch (error) {
+            console.error('Ошибка при удалении отпуска:', error);
+            if (error.response) {
+                console.error('Response error:', error.response.data, error.response.status);
+                if (error.response.status === 401) {
+                    alert('Сессия истекла, пожалуйста, войдите снова.');
+                    navigate('/login');
+                } else if (error.response.status === 400) {
+                    alert('Некорректные данные в запросе.');
+                } else if (error.response.status === 403) {
+                    alert('Доступ запрещен. Проверьте права доступа.');
+                } else if (error.response.status === 404) {
+                    alert('Отпуск не найден.');
+                } else {
+                    alert(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
+                }
+            } else if (error.request) {
+                console.error('No response received:', error.request);
+                alert('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
+            } else {
+                console.error('Request setup error:', error.message);
+                alert(`Ошибка: ${error.message}`);
+            }
         }
     };
 
@@ -96,9 +203,23 @@ const AdminPage = () => {
         removeEmployeeFromGroup();
     };
 
-    // Сохранение отчёта
+    // Сохранение отчета
     const handleSaveReport = () => {
-        const reportData = JSON.stringify(groups, null, 2);
+        const reportData = JSON.stringify(
+            Object.entries(groups).map(([name, employees]) => ({
+                group: name,
+                employees: employees.map((emp) => ({
+                    id: emp.id,
+                    email: emp.email,
+                    lastName: emp.lastName,
+                    divisionName: emp.divisionName,
+                    startDate: formatDate(emp.startDate),
+                    endDate: formatDate(emp.endDate),
+                })),
+            })),
+            null,
+            2
+        );
         const blob = new Blob([reportData], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -110,14 +231,14 @@ const AdminPage = () => {
 
     // Обработка клика по логотипу
     const handleLogoClick = () => {
-        window.location.href = 'https://penza.tns-e.ru/population/'; // Перенаправление на сайт
+        window.location.href = 'https://penza.tns-e.ru/population/';
     };
 
     // Обработка выхода
     const handleLogout = () => {
+        localStorage.removeItem('accessToken');
         alert('Выход из профиля');
-        // Здесь можно добавить реальную логику выхода, например, очистку токена или редирект на страницу логина
-        navigate('/login'); // Предполагаемый маршрут для страницы логина
+        navigate('/login');
     };
 
     return (
@@ -150,19 +271,17 @@ const AdminPage = () => {
             </header>
             <section className="h-screen bg-[#FDE0B5] flex items-center justify-center">
                 <div className="box-border flex items-start justify-between min-w-[1128px] bg-white pt-[60px]">
-                    {/* Группы коллизий */}
                     <div className="box-border flex flex-col items-stretch justify-start w-full pb-[128px] px-[40px]">
                         <h4 className="text-2xl font-semibold font-[Montserrat] text-[#023973] mb-[20px]">
                             Коллизии
                         </h4>
-                        {/* Вкладки для переключения групп */}
                         <div className="flex space-x-[10px] mb-[20px] overflow-x-auto">
                             {Object.keys(groups).map((groupName) => (
                                 <button
                                     key={groupName}
                                     onClick={() => {
                                         setSelectedGroup(groupName);
-                                        setSelectedEmployee(null); // Сбрасываем выбор при смене группы
+                                        setSelectedEmployee(null);
                                     }}
                                     className={`px-4 py-2 rounded-[6px] font-[Montserrat] text-[#023973] whitespace-nowrap ${
                                         selectedGroup === groupName
@@ -174,23 +293,34 @@ const AdminPage = () => {
                                 </button>
                             ))}
                         </div>
-                        {/* Список сотрудников в текущей группе */}
-                        {selectedGroup && groups[selectedGroup] ? (
+                        {isLoading ? (
+                            <div className="bg-white border-[2px] border-[#023973] rounded-[6px] h-[400px] flex items-center justify-center font-[Montserrat] text-[#023973]">
+                                Загрузка...
+                            </div>
+                        ) : error ? (
+                            <div className="bg-white border-[2px] border-[#023973] rounded-[6px] h-[400px] flex items-center justify-center font-[Montserrat] text-[#023973]">
+                                {error}
+                            </div>
+                        ) : selectedGroup && groups[selectedGroup] ? (
                             <div className="bg-white border-[2px] border-[#023973] rounded-[6px] h-[400px] overflow-y-auto">
                                 <ul className="space-y-[10px] p-4">
                                     {groups[selectedGroup].map((employee) => (
                                         <li
-                                            key={employee.id}
+                                            key={`${employee.id}-${employee.vacationId}`}
                                             onClick={() => handleEmployeeClick(employee)}
                                             className={`cursor-pointer p-2 rounded-[6px] font-[Montserrat] text-[#023973] ${
-                                                selectedEmployee && selectedEmployee.id === employee.id
+                                                selectedEmployee &&
+                                                selectedEmployee.id === employee.id &&
+                                                selectedEmployee.vacationId === employee.vacationId
                                                     ? 'bg-[#F5A623] text-white'
                                                     : hasCollision(employee, selectedGroup)
                                                         ? 'bg-red-200'
                                                         : 'bg-white'
                                             }`}
                                         >
-                                            {employee.lastName}, {employee.email}, Отпуск: {employee.startDate} – {employee.endDate}
+                                            {employee.lastName} ({employee.email}, {employee.divisionName}), Отпуск:{' '}
+                                            {formatDate(employee.startDate)} –{' '}
+                                            {formatDate(employee.endDate)}
                                         </li>
                                     ))}
                                 </ul>
@@ -200,12 +330,11 @@ const AdminPage = () => {
                                 Нет групп с коллизиями
                             </div>
                         )}
-                        {/* Кнопки, растянутые на всю ширину */}
                         <button
                             onClick={handleSendRequest}
                             className="mt-[20px] cursor-pointer w-full h-[40px] bg-[#023973] text-base text-white font-medium rounded-[10px] font-[Montserrat]"
                         >
-                            Отправить запрос на изменение
+                            Отправить запрос на удаление
                         </button>
                         <button
                             onClick={handleIgnore}
