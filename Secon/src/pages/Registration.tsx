@@ -217,7 +217,7 @@ const Registration = () => {
 
     return (
         <div className='flex min-h-screen flex-col justify-center items-center bg-[#023973]'>
-            <div className='w-[520px] bg-[#FDE0B5] rounded-[45px] pl-[60px] pt-[60px] space-y-[30px] pb-[30px]'>
+            <div className='w-[520px] bg-[#FDE0B5] rounded-[45px] pl-[60px] pt-[30px] space-y-[30px] pb-[30px]'>
                 <h4 className="text-2xl font-semibold font-[Montserrat] text-[#023973]">Создать аккаунт</h4>
                 <form>
                     <div className="relative">
