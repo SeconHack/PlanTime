@@ -17,7 +17,7 @@ public class ReportService(
 {
     const string BucketName = "vacations";
 
-    
+    //метод для создания и отправики чернового отчёта на сервер
     private async Task<(string fileName, MemoryStream content)> GenerateExcelFile(string divisionName, int divisionId,
         List<VacationInfo> vacations)
     {
@@ -94,7 +94,7 @@ public class ReportService(
 
         return ($"Подразделение {safeFileName}.xlsx", stream);
     }
-
+    //метод длля вывода пересечений отпусков по спискам
     public async Task<List<List<VacationInfo>>> GetIntersectionsAsync(int userId)
     {
         var user = await accountRepository.GetByIdAsync(userId);
