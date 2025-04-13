@@ -1,5 +1,4 @@
 ﻿using ClosedXML.Excel;
-using Microsoft.AspNetCore.Mvc;
 using PlanTime.Application.Services.Interfaces;
 using PlanTime.Domain.Repositories;
 using PlanTime.Models.Vacations;
@@ -18,6 +17,7 @@ public class ReportService(
 {
     const string BucketName = "vacations";
 
+    
     private async Task<(string fileName, MemoryStream content)> GenerateExcelFile(string divisionName, int divisionId,
         List<VacationInfo> vacations)
     {
@@ -215,6 +215,8 @@ public class ReportService(
                 }
                 Console.WriteLine(Convert.ToInt32(row.Cell(1).Value.ToString()));
                 var vacation = await vacationRepository.GetByIdAsync(Convert.ToInt32(row.Cell(1).Value.ToString()));
+                if (vacation == null)
+                    return (2,"Данные о отпуске устарели. Обновите отчёты ниже по иерархии", null);
                 var tmpuset = await accountRepository.GetByIdAsync(vacation.UserId);
                 var profesion = await professionRepository.GetByIdAsync(tmpuset.ProfessionId);
                 worksheet.Cell(startRow, startColumn-1).Value = rowIndex++; // Подразделение
