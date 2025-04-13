@@ -52,13 +52,26 @@ public class ReportService(IAccountRepository accountRepository,
         var user = await accountRepository.GetByIdAsync(userId);
         var vacations = await vacationService.GetVacationInfoByDivisionIdAsync(user.DivisionId);
         List<List<VacationInfo>> result = new List<List<VacationInfo>>();
-        
-        while (vacations.Count > 0)
+        for (int i = 0; i < vacations.Count; i++)
         {
-            var divisionName = vacations[0].DivisionName;
-            result.Add(vacations.Where(v=>v.DivisionName==divisionName).ToList());
-            vacations.RemoveAll(v => v.DivisionName==divisionName);
+            List<VacationInfo> vacationInfos = new List<VacationInfo>();
+            vacationInfos.Add(vacations[i]);
+            int indMax = i;
+            for(int j = i + 1; j < vacations.Count; j++)
+                if (vacations[indMax].VacationEndDate > vacations[j].VacationEndDate)
+                {
+                    indMax = j;
+                    vacationInfos.Add(vacations[j]);
+                }
+            if(vacationInfos.Count != 1)
+                result.Add(vacationInfos);
+                
         }
+
+                    
+        var divisionName = vacations[0].DivisionName;
+        result.Add(vacations.Where(v=>v.DivisionName==divisionName).ToList());
+        vacations.RemoveAll(v => v.DivisionName==divisionName);
         return result;
     }
     public async Task<(int,string)> SaveReportAsync(int userId)
@@ -97,7 +110,7 @@ public class ReportService(IAccountRepository accountRepository,
         int dayCouns = vacation.EndDate.Day - vacation.StartDate.Day;
         var user = await accountRepository.GetByIdAsync(vacation.UserId);
         user.CountVacationDays+=dayCouns;
-        accountRepository.UpdateAsync(user,user.Id);
+        await accountRepository.UpdateAsync(user,user.Id);
         await vacationRepository.DeleteAsync(vacationId);
         mailServiceSender.SendMail(user.Email,"Необходимо обновить данные",
             "Руководитель убрал ваш отпуск. Пожалуйста выберете новую дату");
