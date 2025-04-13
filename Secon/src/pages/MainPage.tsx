@@ -6,12 +6,14 @@ import axios from 'axios';
 const MainPage = () => {
     const navigate = useNavigate();
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    const [currentMonth, setCurrentMonth] = useState(1);
+    const [currentMonth, setCurrentMonth] = useState(0);
     const [remainingVacationDays, setRemainingVacationDays] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [name, setName] = useState('');
     const [roleId, setRoleId] = useState(null);
+    const [form, setForm] = useState({ start: '', end: '' });
+    const [selectedDates, setSelectedDates] = useState([]);
 
     const months = [
         { name: 'ЯНВАРЬ', days: 31 },
@@ -29,12 +31,9 @@ const MainPage = () => {
     ];
 
     const days = Array.from({ length: months[currentMonth].days }, (_, i) => i + 1);
-
-    const [form, setForm] = useState({ start: '', end: '' });
-    const [selectedDates, setSelectedDates] = useState([]);
     const maxSelectableDays = remainingVacationDays > 0 ? remainingVacationDays - 1 : 0;
 
-    // Загрузка данных профиля, включая roleId
+    // Загрузка данных профиля
     useEffect(() => {
         const fetchVacationDays = async () => {
             const token = localStorage.getItem('accessToken');
@@ -52,7 +51,6 @@ const MainPage = () => {
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log('Profile data:', response.data);
                 setRemainingVacationDays(response.data.countVacationDays || 0);
                 setName(
                     `${response.data.lastName} ${response.data.firstName} ${response.data.middleName}`
@@ -115,7 +113,7 @@ const MainPage = () => {
         updatedDates.sort((a, b) => {
             const aValue = a.month * 100 + a.day;
             const bValue = b.month * 100 + b.day;
-            return aValue - bValue + 1;
+            return aValue - bValue;
         });
 
         if (updatedDates.length === 2) {
@@ -226,7 +224,6 @@ const MainPage = () => {
         };
 
         const apiUrl = 'http://109.73.203.81:9090/v1/vacation';
-        console.log('Submitting:', { payload, token, url: apiUrl });
 
         try {
             const response = await axios.post(apiUrl, payload, {
@@ -235,7 +232,6 @@ const MainPage = () => {
                     'Content-Type': 'application/json',
                 },
             });
-            console.log('Заявка успешно отправлена:', response.data);
             alert('Заявка на отпуск успешно отправлена!');
             setForm({ start: '', end: '' });
             setSelectedDates([]);
@@ -248,24 +244,13 @@ const MainPage = () => {
             setRemainingVacationDays(profileResponse.data.countVacationDays || 0);
         } catch (error) {
             console.error('Ошибка при отправке заявки:', error);
-            if (error.response) {
-                console.error('Response error:', error.response.data, error.response.status);
-                if (error.response.status === 401) {
-                    alert('Сессия истекла, пожалуйста, войдите снова.');
-                    navigate('/login');
-                } else if (error.response.status === 400) {
-                    alert('Некорректные данные в запросе. Проверьте выбранные даты.');
-                } else if (error.response.status === 403) {
-                    alert('Доступ запрещен. Проверьте правильность токена.');
-                } else {
-                    alert(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
-                }
-            } else if (error.request) {
-                console.error('No response received:', error.request);
-                alert('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
+            if (error.response?.status === 401) {
+                alert('Сессия истекла, пожалуйста, войдите снова.');
+                navigate('/login');
+            } else if (error.response?.status === 400) {
+                alert('Некорректные данные в запросе. Проверьте выбранные даты.');
             } else {
-                console.error('Request setup error:', error.message);
-                alert(`Ошибка при отправке заявки: ${error.message}`);
+                alert('Ошибка при отправке заявки. Попробуйте позже.');
             }
         }
     };
@@ -283,24 +268,6 @@ const MainPage = () => {
             }
         }
     };
-
-    function InfiniteDivs() {
-        return (
-            <div className="box-border grid grid-cols-7 gap-y-6 items-end mt-[24px] pl-[40px]">
-                {days.map((element) => (
-                    <div
-                        key={element}
-                        onClick={() => handleDayClick(element)}
-                        className={`box-border flex flex-[0_0_auto] w-[80px] h-[80px] overflow-hidden text-white items-center justify-center font-[Montserrat] text-2xl cursor-pointer ${
-                            isDayInRange(element, currentMonth) ? 'bg-[#F5A623]' : 'bg-[#023973]'
-                        }`}
-                    >
-                        {element}
-                    </div>
-                ))}
-            </div>
-        );
-    }
 
     const handleLogoClick = () => {
         window.location.href = 'https://penza.tns-e.ru/population/';
@@ -321,27 +288,41 @@ const MainPage = () => {
     };
 
     if (loading) {
-        return <div>Загрузка...</div>;
+        return (
+            <div className="flex items-center justify-center h-screen bg-gray-100">
+                <div className="text-2xl font-semibold text-gray-700 animate-pulse">Загрузка...</div>
+            </div>
+        );
     }
 
     if (error) {
-        return <div>{error}</div>;
+        return (
+            <div className="flex items-center justify-center h-screen bg-gray-100">
+                <div className="text-xl text-red-600">{error}</div>
+            </div>
+        );
     }
 
     return (
-        <>
-            <header className="flex justify-between items-center p-[1rem] bg-white">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans">
+            {/* Header */}
+            <header className="flex items-center justify-between p-4 bg-white shadow-md">
                 <div className="flex items-center space-x-4">
                     <img
                         src={logo}
                         alt="Logo"
-                        className="cursor-pointer"
+                        className="h-12 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={handleLogoClick}
                     />
                     {roleId === 2 && (
                         <button
                             onClick={handleAdminPageClick}
-                            className="w-[240px] h-[48px] bg-[#023973] text-white font-[Montserrat] font-medium rounded-[10px] text-lg"
+                            style={{
+                                backgroundColor: '#023973',
+                                color: 'white',
+                                transition: 'background-color 0.3s',
+                            }}
+                            className="px-6 py-2 rounded-lg hover:bg-[#012A5A]"
                         >
                             Панель администратора
                         </button>
@@ -349,24 +330,48 @@ const MainPage = () => {
                     {roleId === 3 && (
                         <button
                             onClick={handleHRPageClick}
-                            className="w-[240px] h-[48px] bg-[#023973] text-white font-[Montserrat] font-medium rounded-[10px] text-lg"
+                            style={{
+                                backgroundColor: '#023973',
+                                color: 'white',
+                                transition: 'background-color 0.3s',
+                            }}
+                            className="px-6 py-2 rounded-lg hover:bg-[#012A5A]"
                         >
                             Отдел кадров
                         </button>
                     )}
                 </div>
                 <div className="relative">
-                    <div
-                        className="rounded-[6px] w-[280px] h-[48px] border-[2px] pt-[10px] pl-[24px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer text-lg truncate"
+                    <button
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                        style={{
+                            borderColor: '#023973',
+                            color: '#023973',
+                            transition: 'background-color 0.3s',
+                        }}
+                        className="flex items-center px-4 py-2 border-2 rounded-lg hover:bg-gray-100"
                     >
-                        {name || 'Профиль'}
-                    </div>
+                        <span className="truncate max-w-[200px]">{name || 'Профиль'}</span>
+                        <svg
+                            className="ml-2 w-5 h-5"
+                            fill="none"
+                            stroke="#023973"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M19 9l-7 7-7-7"
+                            />
+                        </svg>
+                    </button>
                     {isProfileMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-[280px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 font-[Montserrat] text-[#023973] text-lg hover:bg-gray-100"
+                                style={{ color: '#023973', transition: 'background-color 0.3s' }}
+                                className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
                             >
                                 Выйти
                             </button>
@@ -374,42 +379,85 @@ const MainPage = () => {
                     )}
                 </div>
             </header>
-            <section className="h-screen bg-[#FDE0B5] flex items-center justify-center">
-                <div className="box-border flex items-start justify-between min-w-[1128px] bg-white pt-[60px]">
-                    <div className="box-border flex flex-col items-stretch justify-start w-[872px] h-[656px] pb-[128px]">
-                        <div className="flex items-center justify-center space-x-[20px]">
+
+            {/* Main Content */}
+            <main className="flex justify-center p-6">
+                <div className="flex flex-col lg:flex-row bg-white rounded-2xl shadow-xl max-w-6xl w-full overflow-hidden">
+                    {/* Calendar Section */}
+                    <div className="p-8 flex-1">
+                        <div className="flex items-center justify-between mb-6">
                             <button
                                 onClick={handlePrevMonth}
                                 disabled={currentMonth === 0}
-                                className={`w-[40px] h-[40px] rounded-full font-[Montserrat] text-2xl ${
-                                    currentMonth === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#023973] text-white'
+                                style={{
+                                    backgroundColor: currentMonth === 0 ? '' : '#023973',
+                                    color: currentMonth === 0 ? '' : 'white',
+                                    transition: 'background-color 0.3s',
+                                }}
+                                className={`p-2 rounded-full ${
+                                    currentMonth === 0
+                                        ? 'bg-gray-200 cursor-not-allowed'
+                                        : 'hover:bg-[#012A5A]'
                                 }`}
                             >
                                 ←
                             </button>
-                            <p className="flex-[0_0_auto] p-0 m-0 font-[Montserrat] font-semibold text-2xl text-black">
+                            <h2 className="text-2xl font-bold text-gray-800">
                                 {months[currentMonth].name}
-                            </p>
+                            </h2>
                             <button
                                 onClick={handleNextMonth}
                                 disabled={currentMonth === months.length - 1}
-                                className={`w-[40px] h-[40px] rounded-full font-[Montserrat] text-2xl ml-[20px] ${
-                                    currentMonth === months.length - 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#023973] text-white'
+                                style={{
+                                    backgroundColor:
+                                        currentMonth === months.length - 1 ? '' : '#023973',
+                                    color: currentMonth === months.length - 1 ? '' : 'white',
+                                    transition: 'background-color 0.3s',
+                                }}
+                                className={`p-2 rounded-full ${
+                                    currentMonth === months.length - 1
+                                        ? 'bg-gray-200 cursor-not-allowed'
+                                        : 'hover:bg-[#012A5A]'
                                 }`}
                             >
                                 →
                             </button>
                         </div>
-                        <InfiniteDivs />
+                        <div className="grid grid-cols-7 gap-2">
+                            {days.map((day) => (
+                                <button
+                                    key={day}
+                                    onClick={() => handleDayClick(day)}
+                                    style={{
+                                        backgroundColor: isDayInRange(day, currentMonth)
+                                            ? '#F89807'
+                                            : '#023973',
+                                        color: 'white',
+                                        transition: 'background-color 0.3s',
+                                    }}
+                                    className={`p-4 rounded-lg text-lg font-medium hover:${
+                                        isDayInRange(day, currentMonth)
+                                            ? 'bg-[#D87E06]'
+                                            : 'bg-[#012A5A]'
+                                    }`}
+                                >
+                                    {day}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="w-[520px] pr-[60px] space-y-[30px]">
-                        <h4 className="text-2xl font-semibold font-[Montserrat] text-[#023973]">
+                    {/* Form Section */}
+                    <div className="p-8 bg-gray-50 w-full lg:w-96">
+                        <h3
+                            style={{ color: '#023973' }}
+                            className="text-xl font-semibold mb-6"
+                        >
                             Заявка
-                        </h4>
-                        <form className="space-y-[30px]" onSubmit={handleSubmit}>
-                            <div className="space-y-[6px]">
-                                <label className="block text-sm font-medium text-left text-[#023973] font-[Montserrat]">
+                        </h3>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Начало
                                 </label>
                                 <input
@@ -417,11 +465,16 @@ const MainPage = () => {
                                     name="start"
                                     value={form.start}
                                     onChange={handleChange}
-                                    className="w-[400px] h-[40px] border-[2px] border-[#023973] rounded-[6px] px-[10px] font-[Montserrat] text-[#023973] focus:outline-none"
+                                    style={{
+                                        borderColor: '#023973',
+                                        '--tw-ring-color': '#023973',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s',
+                                    }}
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:border-[#023973]"
                                 />
                             </div>
-                            <div className="space-y-[6px]">
-                                <label className="block text-sm font-medium text-left text-[#023973] font-[Montserrat]">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Конец
                                 </label>
                                 <input
@@ -429,21 +482,31 @@ const MainPage = () => {
                                     name="end"
                                     value={form.end}
                                     onChange={handleChange}
-                                    className="w-[400px] h-[40px] border-[2px] border-[#023973] rounded-[6px] px-[10px] font-[Montserrat] text-[#023973] focus:outline-none"
+                                    style={{
+                                        borderColor: '#023973',
+                                        '--tw-ring-color': '#023973',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s',
+                                    }}
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:border-[#023973]"
                                 />
                             </div>
-                            <div className="space-y-[6px]">
-                                <label className="block text-sm font-medium text-left text-[#023973] font-[Montserrat]">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Отчет
                                 </label>
-                                <div className="w-[400px] h-[40px] border-[2px] border-[#023973] rounded-[6px] px-[10px] font-[Montserrat] text-[#023973] flex items-center">
+                                <div className="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg">
                                     Осталось дней отпуска: {daysLeft}
                                 </div>
                             </div>
-                            <div className="flex space-x-[20px]">
+                            <div className="flex space-x-4">
                                 <button
                                     type="submit"
-                                    className="cursor-pointer w-[190px] h-[40px] bg-[#023973] text-base text-white font-medium rounded-[10px] font-[Montserrat]"
+                                    style={{
+                                        backgroundColor: '#023973',
+                                        color: 'white',
+                                        transition: 'background-color 0.3s',
+                                    }}
+                                    className="flex-1 py-2 rounded-lg hover:bg-[#012A5A]"
                                 >
                                     Отправить
                                 </button>
@@ -453,7 +516,7 @@ const MainPage = () => {
                                         setForm({ start: '', end: '' });
                                         setSelectedDates([]);
                                     }}
-                                    className="cursor-pointer w-[190px] h-[40px] bg-[#023973] text-base text-white font-medium rounded-[10px] font-[Montserrat]"
+                                    className="flex-1 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
                                 >
                                     Очистить
                                 </button>
@@ -461,8 +524,8 @@ const MainPage = () => {
                         </form>
                     </div>
                 </div>
-            </section>
-        </>
+            </main>
+        </div>
     );
 };
 

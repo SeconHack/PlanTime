@@ -13,7 +13,7 @@ const AdminPage = () => {
     const [error, setError] = useState(null);
     const [name, setName] = useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isAuthorized, setIsAuthorized] = useState(false); // Новое состояние для проверки роли
+    const [isAuthorized, setIsAuthorized] = useState(false);
 
     // Форматирование даты в читаемый формат (DD.MM.YYYY)
     const formatDate = (isoDate) => {
@@ -58,6 +58,7 @@ const AdminPage = () => {
             } catch (error) {
                 console.error('Ошибка при загрузке профиля:', error);
                 if (error.response?.status === 401) {
+                    localStorage.removeItem('accessToken');
                     navigate('/login', { replace: true });
                 }
             }
@@ -105,6 +106,7 @@ const AdminPage = () => {
                 if (error.response) {
                     console.error('Response error:', error.response.data, error.response.status);
                     if (error.response.status === 401) {
+                        localStorage.removeItem('accessToken');
                         navigate('/login', { replace: true });
                     } else {
                         setError(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
@@ -207,6 +209,7 @@ const AdminPage = () => {
             if (error.response) {
                 console.error('Response error:', error.response.data, error.response.status);
                 if (error.response.status === 401) {
+                    localStorage.removeItem('accessToken');
                     navigate('/login', { replace: true });
                 } else if (error.response.status === 400) {
                     alert('Некорректные данные в запросе.');
@@ -232,30 +235,109 @@ const AdminPage = () => {
         removeEmployeeFromGroup();
     };
 
-    // Сохранение отчета
-    const handleSaveReport = () => {
-        const reportData = JSON.stringify(
-            Object.entries(groups).map(([name, employees]) => ({
-                group: name,
-                employees: employees.map((emp) => ({
-                    id: emp.id,
-                    email: emp.email,
-                    lastName: emp.lastName,
-                    divisionName: emp.divisionName,
-                    startDate: formatDate(emp.startDate),
-                    endDate: formatDate(emp.endDate),
-                })),
-            })),
-            null,
-            2
-        );
-        const blob = new Blob([reportData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'groups_report.json';
-        link.click();
-        URL.revokeObjectURL(url);
+    // Сохранение отчета на сервер (без скачивания файла)
+    const handleSaveReport = async () => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            navigate('/login', { replace: true });
+            return;
+        }
+
+        const apiUrl = 'http://109.73.203.81:9090/api/report/vacations/save-report';
+        try {
+            await axios.get(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            console.log('Отчет успешно сохранен на сервере');
+            alert('Отчет успешно сохранен на сервере');
+        } catch (error) {
+            console.error('Ошибка при сохранении отчета:', error);
+            if (error.response) {
+                console.error('Response error:', error.response.status);
+                if (error.response.status === 401) {
+                    localStorage.removeItem('accessToken');
+                    navigate('/login', { replace: true });
+                } else if (error.response.status === 405) {
+                    alert('Метод не поддерживается сервером.');
+                } else {
+                    alert(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
+                }
+            } else if (error.request) {
+                console.error('No response received:', error.request);
+                alert('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
+            } else {
+                console.error('Request setup error:', error.message);
+                alert(`Ошибка: ${error.message}`);
+            }
+        }
+    };
+
+    // Отправка финального отчета и скачивание файла
+    const handleSendFinalReport = async () => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            navigate('/login', { replace: true });
+            return;
+        }
+
+        const apiUrl = 'http://109.73.203.81:9090/api/report/vacations/create-from-template';
+        try {
+            const response = await axios.post(apiUrl, null, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Accept': '*/*',
+                },
+                responseType: 'blob', // Для получения файла
+            });
+
+            // Извлечение имени файла из заголовка content-disposition
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = 'ERSheet.xlsx'; // Значение по умолчанию
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            // Создание ссылки для скачивания файла
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            console.log('Финальный отчет успешно отправлен и файл загружен');
+            alert('Финальный отчет успешно отправлен, файл загружен');
+        } catch (error) {
+            console.error('Ошибка при отправке финального отчета:', error);
+            if (error.response) {
+                console.error('Response error:', error.response.status);
+                if (error.response.status === 401) {
+                    localStorage.removeItem('accessToken');
+                    navigate('/login', { replace: true });
+                } else if (error.response.status === 404) {
+                    alert('Эндпоинт не найден. Проверьте URL или обратитесь к администратору.');
+                } else if (error.response.status === 403) {
+                    alert('Доступ запрещен. Проверьте права доступа.');
+                } else {
+                    alert(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
+                }
+            } else if (error.request) {
+                console.error('No response received:', error.request);
+                alert('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
+            } else {
+                console.error('Request setup error:', error.message);
+                alert(`Ошибка: ${error.message}`);
+            }
+        }
     };
 
     // Обработка клика по логотипу
@@ -280,34 +362,62 @@ const AdminPage = () => {
     }
 
     return (
-        <>
-            <header className="flex justify-between items-center p-[1rem] bg-white">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-[Montserrat]">
+            <header className="flex justify-between items-center p-4 bg-white shadow-md">
                 <div className="flex items-center space-x-4">
                     <img
                         src={logo}
                         alt="Logo"
-                        className="cursor-pointer"
+                        className="h-12 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={handleLogoClick}
                     />
                     <button
                         onClick={handleBackToMain}
-                        className="w-[240px] h-[48px] bg-[#023973] text-white font-[Montserrat] font-medium rounded-[10px] text-lg"
+                        style={{
+                            backgroundColor: '#023973',
+                            color: 'white',
+                            transition: 'background-color 0.3s',
+                            fontFamily: 'Montserrat, sans-serif',
+                        }}
+                        className="px-6 py-2 rounded-lg hover:bg-[#012A5A]"
                     >
                         На главную
                     </button>
                 </div>
                 <div className="relative">
-                    <div
-                        className="rounded-[6px] w-[280px] h-[48px] border-[2px] pt-[10px] pl-[24px] bg-white font-[Montserrat] text-[#023973] font-semibold cursor-pointer text-lg truncate"
+                    <button
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                        style={{
+                            borderColor: '#023973',
+                            color: '#023973',
+                            transition: 'background-color 0.3s',
+                        }}
+                        className="flex items-center px-4 py-2 border-2 rounded-lg hover:bg-gray-100"
                     >
-                        {name || 'Профиль'}
-                    </div>
+                        <span className="truncate max-w-[200px]">{name || 'Профиль'}</span>
+                        <svg
+                            className="ml-2 w-5 h-5"
+                            fill="none"
+                            stroke="#023973"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M19 9l-7 7-7-7"
+                            />
+                        </svg>
+                    </button>
                     {isProfileMenuOpen && (
-                        <div className="absolute right-0 mt-2 w-[280px] bg-white border-[2px] border-[#023973] rounded-[6px] shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 font-[Montserrat] text-[#023973] text-lg hover:bg-gray-100"
+                                style={{
+                                    color: '#023973',
+                                    transition: 'background-color 0.3s',
+                                }}
+                                className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
                             >
                                 Выйти
                             </button>
@@ -315,10 +425,16 @@ const AdminPage = () => {
                     )}
                 </div>
             </header>
-            <section className="h-screen bg-[#FDE0B5] flex items-center justify-center">
-                <div className="box-border flex items-start justify-between min-w-[1128px] bg-white pt-[60px]">
+            <section className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center">
+                <div className="box-border flex items-start justify-between min-w-[1128px] bg-white pt-[60px] rounded-2xl shadow-xl">
                     <div className="box-border flex flex-col items-stretch justify-start w-full pb-[128px] px-[40px]">
-                        <h4 className="text-2xl font-semibold font-[Montserrat] text-[#023973] mb-[20px]">
+                        <h4
+                            style={{
+                                color: '#023973',
+                                fontFamily: 'Montserrat, sans-serif',
+                            }}
+                            className="text-2xl font-semibold mb-[20px]"
+                        >
                             Коллизии
                         </h4>
                         <div className="flex space-x-[10px] mb-[20px] overflow-x-auto">
@@ -329,42 +445,85 @@ const AdminPage = () => {
                                         setSelectedGroup(groupName);
                                         setSelectedEmployee(null);
                                     }}
-                                    className={`px-4 py-2 rounded-[6px] font-[Montserrat] text-[#023973] whitespace-nowrap ${
-                                        selectedGroup === groupName
-                                            ? 'bg-[#023973] text-white'
-                                            : 'bg-gray-200'
-                                    }`}
+                                    style={{
+                                        backgroundColor:
+                                            selectedGroup === groupName ? '#023973' : '',
+                                        color: selectedGroup === groupName ? 'white' : '#023973',
+                                        transition: 'background-color 0.3s, color 0.3s',
+                                        fontFamily: 'Montserrat, sans-serif',
+                                    }}
+                                    className={`px-4 py-2 rounded-lg whitespace-nowrap ${
+                                        selectedGroup === groupName ? '' : 'bg-gray-200'
+                                    } hover:bg-[#012A5A] hover:text-white`}
                                 >
                                     {groupName}
                                 </button>
                             ))}
                         </div>
                         {isLoading ? (
-                            <div className="bg-white border-[2px] border-[#023973] rounded-[6px] h-[400px] flex items-center justify-center font-[Montserrat] text-[#023973]">
+                            <div
+                                style={{
+                                    borderColor: '#023973',
+                                    color: '#023973',
+                                    fontFamily: 'Montserrat, sans-serif',
+                                }}
+                                className="bg-white border-2 rounded-lg h-[400px] flex items-center justify-center"
+                            >
                                 Загрузка...
                             </div>
                         ) : error ? (
-                            <div className="bg-white border-[2px] border-[#023973] rounded-[6px] h-[400px] flex items-center justify-center font-[Montserrat] text-[#023973]">
+                            <div
+                                style={{
+                                    borderColor: '#023973',
+                                    color: '#023973',
+                                    fontFamily: 'Montserrat, sans-serif',
+                                }}
+                                className="bg-white border-2 rounded-lg h-[400px] flex items-center justify-center"
+                            >
                                 {error}
                             </div>
                         ) : selectedGroup && groups[selectedGroup] ? (
-                            <div className="bg-white border-[2px] border-[#023973] rounded-[6px] h-[400px] overflow-y-auto">
+                            <div
+                                style={{ borderColor: '#023973' }}
+                                className="bg-white border-2 rounded-lg h-[400px] overflow-y-auto"
+                            >
                                 <ul className="space-y-[10px] p-4">
                                     {groups[selectedGroup].map((employee) => (
                                         <li
                                             key={`${employee.id}-${employee.vacationId}`}
                                             onClick={() => handleEmployeeClick(employee)}
-                                            className={`cursor-pointer p-2 rounded-[6px] font-[Montserrat] text-[#023973] ${
+                                            style={{
+                                                backgroundColor:
+                                                    selectedEmployee &&
+                                                    selectedEmployee.id === employee.id &&
+                                                    selectedEmployee.vacationId ===
+                                                    employee.vacationId
+                                                        ? '#F89807'
+                                                        : hasCollision(employee, selectedGroup)
+                                                            ? ''
+                                                            : '',
+                                                color:
+                                                    selectedEmployee &&
+                                                    selectedEmployee.id === employee.id &&
+                                                    selectedEmployee.vacationId ===
+                                                    employee.vacationId
+                                                        ? 'white'
+                                                        : '#023973',
+                                                transition: 'background-color 0.3s, color 0.3s',
+                                                fontFamily: 'Montserrat, sans-serif',
+                                            }}
+                                            className={`cursor-pointer p-2 rounded-lg ${
                                                 selectedEmployee &&
                                                 selectedEmployee.id === employee.id &&
                                                 selectedEmployee.vacationId === employee.vacationId
-                                                    ? 'bg-[#F5A623] text-white'
+                                                    ? 'hover:bg-[#D87E06]'
                                                     : hasCollision(employee, selectedGroup)
                                                         ? 'bg-red-200'
                                                         : 'bg-white'
                                             }`}
                                         >
-                                            {employee.lastName} ({employee.email}, {employee.divisionName}), Отпуск:{' '}
+                                            {employee.lastName} ({employee.email},{' '}
+                                            {employee.divisionName}), Отпуск:{' '}
                                             {formatDate(employee.startDate)} –{' '}
                                             {formatDate(employee.endDate)}
                                         </li>
@@ -372,32 +531,69 @@ const AdminPage = () => {
                                 </ul>
                             </div>
                         ) : (
-                            <div className="bg-white border-[2px] border-[#023973] rounded-[6px] h-[400px] flex items-center justify-center font-[Montserrat] text-[#023973]">
+                            <div
+                                style={{
+                                    borderColor: '#023973',
+                                    color: '#023973',
+                                    fontFamily: 'Montserrat, sans-serif',
+                                }}
+                                className="bg-white border-2 rounded-lg h-[400px] flex items-center justify-center"
+                            >
                                 Нет групп с коллизиями
                             </div>
                         )}
                         <button
                             onClick={handleSendRequest}
-                            className="mt-[20px] cursor-pointer w-full h-[40px] bg-[#023973] text-base text-white font-medium rounded-[10px] font-[Montserrat]"
+                            style={{
+                                backgroundColor: '#023973',
+                                color: 'white',
+                                transition: 'background-color 0.3s',
+                                fontFamily: 'Montserrat, sans-serif',
+                            }}
+                            className="mt-[20px] cursor-pointer w-full h-[40px] text-base font-medium rounded-lg hover:bg-[#012A5A]"
                         >
                             Отправить запрос на удаление
                         </button>
                         <button
                             onClick={handleIgnore}
-                            className="mt-[10px] cursor-pointer w-full h-[40px] bg-[#023973] text-base text-white font-medium rounded-[10px] font-[Montserrat]"
+                            style={{
+                                backgroundColor: '#023973',
+                                color: 'white',
+                                transition: 'background-color 0.3s',
+                                fontFamily: 'Montserrat, sans-serif',
+                            }}
+                            className="mt-[10px] cursor-pointer w-full h-[40px] text-base font-medium rounded-lg hover:bg-[#012A5A]"
                         >
                             Игнорировать
                         </button>
                         <button
                             onClick={handleSaveReport}
-                            className="mt-[10px] cursor-pointer w-full h-[40px] bg-[#023973] text-base text-white font-medium rounded-[10px] font-[Montserrat]"
+                            style={{
+                                backgroundColor: '#023973',
+                                color: 'white',
+                                transition: 'background-color 0.3s',
+                                fontFamily: 'Montserrat, sans-serif',
+                            }}
+                            className="mt-[10px] cursor-pointer w-full h-[40px] text-base font-medium rounded-lg hover:bg-[#012A5A]"
                         >
                             Сохранить отчёт
+                        </button>
+                        <button
+                            onClick={handleSendFinalReport}
+                            style={{
+                                backgroundColor: '#023973',
+                                color: 'white',
+                                transition: 'background-color 0.3s',
+                                fontFamily: 'Montserrat, sans-serif',
+                            }}
+                            className="mt-[10px] cursor-pointer w-full h-[40px] text-base font-medium rounded-lg hover:bg-[#012A5A]"
+                        >
+                            Отправить финальный отчёт
                         </button>
                     </div>
                 </div>
             </section>
-        </>
+        </div>
     );
 };
 
