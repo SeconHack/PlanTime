@@ -1,7 +1,10 @@
 using System.IO.Compression;
+using System.Net;
+using System.Net.Http.Headers;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using PlanTime.Api.Controllers.Abstract;
 using PlanTime.Application.Services.Interfaces;
 using PlanTime.Domain.Repositories;
@@ -41,83 +44,23 @@ public class ReportController(
     [HttpPost("vacations/create-from-template")]
     public async Task<IActionResult> CreateFinalReportFromTemplate()
     {
-        const string bucketName = "vacations";
-        const string templateFileName = "graphics.xlsx";
-        const string targetFolder = "2025_финальные_отчеты";
-
-        // Получаем шаблон из MinIO
-        var templateStream = await minioRepository.GetFileAsync(bucketName, templateFileName);
-        if (templateStream == null)
-            return NotFound("Шаблонный файл не найден в MinIO.");
-        var account = await accountRepository.GetByIdAsync(UserId);
-        var vacations = await vacationService.GetVacationInfoByDivisionIdAsync(account.DivisionId);
-        if (vacations == null || vacations.Count == 0)
-            return BadRequest("Нет данных для формирования отчета.");
-
-        // Группируем отпуска по подразделениям
-        var groupedVacations = vacations.GroupBy(v => v.DivisionName);
-
-        foreach (var group in groupedVacations)
+        var (code,message,stream) = await reportService.GetFinalReportAsync(UserId);
+        switch (code)   
         {
-            var divisionName = group.Key;
-            var safeDivisionName = string.Concat(divisionName.Split(Path.GetInvalidFileNameChars()));
-            var finalFileName = $"финальный_отчет_{safeDivisionName}.xlsx";
+            case 0:
+                return this.File(
+                    fileContents: stream.ToArray(), 
+                    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
 
-            // Копия шаблона для каждого подразделения
-            var localTemplateStream = new MemoryStream();
-            templateStream.Position = 0;
-            await templateStream.CopyToAsync(localTemplateStream);
-            localTemplateStream.Position = 0;
-
-            using var workbook = new XLWorkbook(localTemplateStream);
-            var worksheet = workbook.Worksheets.FirstOrDefault() ?? workbook.Worksheets.Add("Sheet1");
-
-            int startRow = 28;
-            int startColumn = 2;
-
-            foreach (var vacation in group)
-            {
-                var user = await accountRepository.GetByIdAsync(vacation.UserId);
-                var profession = await professionService.GetById(user.ProfessionId);
-
-                worksheet.Cell(startRow, startColumn).Value = vacation.DivisionName; // Подразделение
-                worksheet.Cell(startRow, startColumn + 1).Value = profession?.ProfessionName ?? ""; // Должность
-                worksheet.Cell(startRow, startColumn + 2).Value =
-                    vacation.Email + user.FirstName + user.MiddleName; // ФИО
-                worksheet.Cell(startRow, startColumn + 3).Value = ""; // Табельный номер
-                worksheet.Cell(startRow, startColumn + 4).Value =
-                    (vacation.VacationEndDate - vacation.VacationStartDate).Days + 1; // Кол-во дней
-                worksheet.Cell(startRow, startColumn + 5).Value = ""; // Доп. отпуск
-                worksheet.Cell(startRow, startColumn + 6).Value = ""; // Итого
-                worksheet.Cell(startRow, startColumn + 7).Value = vacation.VacationStartDate.ToString("dd.MM.yyyy") +
-                                                                  " - " + vacation.VacationEndDate.ToString(
-                                                                      "dd.MM.yyyy"); // Запланированная дата
-                worksheet.Cell(startRow, startColumn + 8).Value = vacation.VacationStartDate.ToString("dd.MM.yyyy") +
-                                                                  " - " + vacation.VacationEndDate.ToString(
-                                                                      "dd.MM.yyyy"); // Фактическая дата
-                worksheet.Cell(startRow, startColumn + 9).Value = ""; // Основание
-                worksheet.Cell(startRow, startColumn + 10).Value = ""; // Предполагаемая дата
-                worksheet.Cell(startRow, startColumn + 11).Value = ""; // Примечание
-
-                startRow++;
-            }
-
-            worksheet.Columns().AdjustToContents();
-
-            var output = new MemoryStream();
-            workbook.SaveAs(output);
-            output.Position = 0;
-
-            await minioRepository.UploadToFolderAsync(
-                bucketName,
-                targetFolder,
-                finalFileName,
-                output,
-                output.Length,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            );
+                    // By setting a file download name the framework will
+                    // automatically add the attachment Content-Disposition header
+                    fileDownloadName: "ERSheet.xlsx"
+                );
+            case 1:
+                return NotFound(message);
+            default:
+                return BadRequest(message);
         }
-
-        return Ok("Финальные отчёты успешно созданы и загружены в MinIO.");
+        
     }
 }
