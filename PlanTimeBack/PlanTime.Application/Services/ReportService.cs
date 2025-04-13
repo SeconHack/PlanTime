@@ -11,7 +11,7 @@ public class ReportService(IAccountRepository accountRepository,
     IVacationService vacationService,IVacationRepository vacationRepository,
     IMailServiceSender mailServiceSender, ICommunicationsRepository communicationsRepository) :IReportService
 {
-    private (string fileName, MemoryStream content) GenerateExcelFile(string divisionName,int divisionId,List<VacationInfo> vacations)
+    private async Task<(string fileName, MemoryStream content)> GenerateExcelFile(string divisionName,List<VacationInfo> vacations)
     {
         var stream = new MemoryStream();
         using (var workbook = new XLWorkbook())
@@ -43,9 +43,6 @@ public class ReportService(IAccountRepository accountRepository,
 
         stream.Position = 0;
         
-        var communications = communicationsRepository.GetByParentIdAsync(divisionId);
-        
-
         // Убрать недопустимые символы из названия файла
         var safeFileName = string.Concat(divisionName.Split(Path.GetInvalidFileNameChars()));
         
@@ -57,14 +54,15 @@ public class ReportService(IAccountRepository accountRepository,
         var user = await accountRepository.GetByIdAsync(userId);
         var vacations = await vacationService.GetVacationInfoByDivisionIdAsync(user.DivisionId);
         List<List<VacationInfo>> result = new List<List<VacationInfo>>();
-        for (int i = 0; i < vacations.Count; i++)
+        while (vacations.Count > 0)
         {
             List<VacationInfo> vacationInfos = new List<VacationInfo>();
-            vacationInfos.Add(vacations[i]);
-            vacations.RemoveAt(i);
+            vacationInfos.Add(vacations[0]);
+            vacations.RemoveAt(0);
             int indMax = 0;
-            for(int j = i ; j < vacations.Count; j++)
-                if (vacationInfos[indMax].VacationEndDate > vacations[j].VacationStartDate)
+            for(int j = 0 ; j < vacations.Count; j++)
+                if (vacationInfos[indMax].VacationEndDate > vacations[j].VacationStartDate&&
+                    vacationInfos[indMax].VacationEndDate < vacations[j].VacationStartDate)
                 {
                     indMax++;
                     vacationInfos.Add(vacations[j]);
@@ -73,7 +71,6 @@ public class ReportService(IAccountRepository accountRepository,
                 }
             if(vacationInfos.Count != 1)
                 result.Add(vacationInfos);
-                
         }
 
                     
@@ -93,11 +90,25 @@ public class ReportService(IAccountRepository accountRepository,
         }
         
 
-        var (fileName, stream) = GenerateExcelFile(division.DivisionName,division.Id, vacations);
+        var (fileName, stream) = await GenerateExcelFile(division.DivisionName, vacations);
         const string bucketName = "vacations";
         await minioRepository.CreateBucketAsync(bucketName);
         const string folder = "2025";
-        var childs = 
+        var communications = await communicationsRepository.GetByParentIdAsync(division.Id);
+
+        foreach (var communication in communications)
+        {
+            var child =await divisionRepository.GetByIdAsync(communication.ChildId);
+            var file = await minioRepository.GetFileAsync(bucketName, child.DivisionName);
+            
+            var mainbook = new XLWorkbook(stream);
+            if (file != null)
+            {
+                var workbook = new XLWorkbook(file);
+                //mainbook.Worksheets.Worksheet(0) workbook.Worksheets.Worksheet(0).Row(2);
+            }
+                
+        }
 
 
         stream.Position = 0;
