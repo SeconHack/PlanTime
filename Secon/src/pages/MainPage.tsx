@@ -14,6 +14,7 @@ const MainPage = () => {
     const [roleId, setRoleId] = useState(null);
     const [form, setForm] = useState({ start: '', end: '' });
     const [selectedDates, setSelectedDates] = useState([]);
+    const [message, setMessage] = useState(''); // Новое состояние для сообщений
 
     const months = [
         { name: 'ЯНВАРЬ', days: 31 },
@@ -33,12 +34,18 @@ const MainPage = () => {
     const days = Array.from({ length: months[currentMonth].days }, (_, i) => i + 1);
     const maxSelectableDays = remainingVacationDays > 0 ? remainingVacationDays - 1 : 0;
 
+    // Функция для отображения сообщения с автоматическим исчезновением
+    const showMessage = (text) => {
+        setMessage(text);
+        setTimeout(() => setMessage(''), 5000); // Сообщение исчезает через 5 секунд
+    };
+
     // Загрузка данных профиля
     useEffect(() => {
         const fetchVacationDays = async () => {
             const token = localStorage.getItem('accessToken');
             if (!token) {
-                alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
+                showMessage('Вы не авторизованы. Пожалуйста, войдите в систему.');
                 navigate('/login');
                 return;
             }
@@ -62,7 +69,7 @@ const MainPage = () => {
                 setError('Не удалось загрузить данные профиля.');
                 setLoading(false);
                 if (error.response?.status === 401) {
-                    alert('Сессия истекла, пожалуйста, войдите снова.');
+                    showMessage('Сессия истекла, пожалуйста, войдите снова.');
                     navigate('/login');
                 }
             }
@@ -193,13 +200,13 @@ const MainPage = () => {
         e.preventDefault();
 
         if (!form.start || !form.end) {
-            alert('Пожалуйста, выберите даты начала и конца отпуска.');
+            showMessage('Пожалуйста, выберите даты начала и конца отпуска.');
             return;
         }
 
         const token = localStorage.getItem('accessToken');
         if (!token) {
-            alert('Вы не авторизованы. Пожалуйста, войдите в систему.');
+            showMessage('Вы не авторизованы. Пожалуйста, войдите в систему.');
             navigate('/login');
             return;
         }
@@ -207,14 +214,14 @@ const MainPage = () => {
         const startDate = new Date(form.start);
         const endDate = new Date(form.end);
         if (isNaN(startDate) || isNaN(endDate)) {
-            alert('Пожалуйста, выберите корректные даты.');
+            showMessage('Пожалуйста, выберите корректные даты.');
             return;
         }
 
         const startDateOnly = new Date(form.start.split('T')[0]);
         const endDateOnly = new Date(form.end.split('T')[0]);
         if (startDateOnly.getTime() >= endDateOnly.getTime()) {
-            alert('Дата окончания должна быть хотя бы на день позже даты начала.');
+            showMessage('Дата окончания должна быть хотя бы на день позже даты начала.');
             return;
         }
 
@@ -232,7 +239,7 @@ const MainPage = () => {
                     'Content-Type': 'application/json',
                 },
             });
-            alert('Заявка на отпуск успешно отправлена!');
+            showMessage('Заявка на отпуск успешно отправлена!');
             setForm({ start: '', end: '' });
             setSelectedDates([]);
             const profileResponse = await axios.get('http://109.73.203.81:9090/v1/profile/me', {
@@ -245,12 +252,12 @@ const MainPage = () => {
         } catch (error) {
             console.error('Ошибка при отправке заявки:', error);
             if (error.response?.status === 401) {
-                alert('Сессия истекла, пожалуйста, войдите снова.');
+                showMessage('Сессия истекла, пожалуйста, войдите снова.');
                 navigate('/login');
             } else if (error.response?.status === 400) {
-                alert('Некорректные данные в запросе. Проверьте выбранные даты.');
+                showMessage('Некорректные данные в запросе. Проверьте выбранные даты.');
             } else {
-                alert('Ошибка при отправке заявки. Попробуйте позже.');
+                showMessage('Ошибка при отправке заявки. Попробуйте позже.');
             }
         }
     };
@@ -275,7 +282,7 @@ const MainPage = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
-        alert('Выход из профиля');
+        showMessage('Выход из профиля');
         navigate('/login');
     };
 
@@ -381,7 +388,16 @@ const MainPage = () => {
             </header>
 
             {/* Main Content */}
-            <main className="flex justify-center p-6">
+            <main className="flex justify-center p-6 relative">
+                {/* Контейнер для сообщений */}
+                {message && (
+                    <div
+                        style={{ backgroundColor: '#023973', color: 'white' }}
+                        className="absolute top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-20 animate-fade-in"
+                    >
+                        {message}
+                    </div>
+                )}
                 <div className="flex flex-col lg:flex-row bg-white rounded-2xl shadow-xl max-w-6xl w-full overflow-hidden">
                     {/* Calendar Section */}
                     <div className="p-8 flex-1">

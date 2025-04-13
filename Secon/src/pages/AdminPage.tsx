@@ -14,6 +14,7 @@ const AdminPage = () => {
     const [name, setName] = useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isAuthorized, setIsAuthorized] = useState(false);
+    const [message, setMessage] = useState(''); // Новое состояние для сообщений
 
     // Форматирование даты в читаемый формат (DD.MM.YYYY)
     const formatDate = (isoDate) => {
@@ -25,6 +26,12 @@ const AdminPage = () => {
             month: '2-digit',
             year: 'numeric',
         });
+    };
+
+    // Функция для отображения сообщения с автоматическим исчезновением
+    const showMessage = (text) => {
+        setMessage(text);
+        setTimeout(() => setMessage(''), 5000); // Сообщение исчезает через 5 секунд
     };
 
     // Получение данных профиля и коллизий
@@ -146,7 +153,7 @@ const AdminPage = () => {
     // Удаление сотрудника из группы
     const removeEmployeeFromGroup = () => {
         if (!selectedEmployee) {
-            alert('Пожалуйста, выберите сотрудника.');
+            showMessage('Пожалуйста, выберите сотрудника.');
             return;
         }
 
@@ -177,7 +184,7 @@ const AdminPage = () => {
     // Отправка запроса на удаление отпуска
     const handleSendRequest = async () => {
         if (!selectedEmployee) {
-            alert('Пожалуйста, выберите сотрудника для отправки запроса.');
+            showMessage('Пожалуйста, выберите сотрудника для отправки запроса.');
             return;
         }
 
@@ -202,7 +209,7 @@ const AdminPage = () => {
                 },
             });
             console.log('Отпуск успешно удален');
-            alert(`Запрос на удаление отпуска отправлен для ${selectedEmployee.email}`);
+            showMessage(`Запрос на удаление отпуска отправлен для ${selectedEmployee.email}`);
             removeEmployeeFromGroup();
         } catch (error) {
             console.error('Ошибка при удалении отпуска:', error);
@@ -212,20 +219,20 @@ const AdminPage = () => {
                     localStorage.removeItem('accessToken');
                     navigate('/login', { replace: true });
                 } else if (error.response.status === 400) {
-                    alert('Некорректные данные в запросе.');
+                    showMessage('Некорректные данные в запросе.');
                 } else if (error.response.status === 403) {
-                    alert('Доступ запрещен. Проверьте права доступа.');
+                    showMessage('Доступ запрещен. Проверьте права доступа.');
                 } else if (error.response.status === 404) {
-                    alert('Отпуск не найден.');
+                    showMessage('Отпуск не найден.');
                 } else {
-                    alert(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
+                    showMessage(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
                 }
             } else if (error.request) {
                 console.error('No response received:', error.request);
-                alert('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
+                showMessage('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
             } else {
                 console.error('Request setup error:', error.message);
-                alert(`Ошибка: ${error.message}`);
+                showMessage(`Ошибка: ${error.message}`);
             }
         }
     };
@@ -253,7 +260,7 @@ const AdminPage = () => {
             });
 
             console.log('Отчет успешно сохранен на сервере');
-            alert('Отчет успешно сохранен на сервере');
+            showMessage('Отчет успешно сохранен на сервере');
         } catch (error) {
             console.error('Ошибка при сохранении отчета:', error);
             if (error.response) {
@@ -262,16 +269,16 @@ const AdminPage = () => {
                     localStorage.removeItem('accessToken');
                     navigate('/login', { replace: true });
                 } else if (error.response.status === 405) {
-                    alert('Метод не поддерживается сервером.');
+                    showMessage('Метод не поддерживается сервером.');
                 } else {
-                    alert(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
+                    showMessage(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
                 }
             } else if (error.request) {
                 console.error('No response received:', error.request);
-                alert('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
+                showMessage('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
             } else {
                 console.error('Request setup error:', error.message);
-                alert(`Ошибка: ${error.message}`);
+                showMessage(`Ошибка: ${error.message}`);
             }
         }
     };
@@ -315,7 +322,7 @@ const AdminPage = () => {
             window.URL.revokeObjectURL(url);
 
             console.log('Финальный отчет успешно отправлен и файл загружен');
-            alert('Финальный отчет успешно отправлен, файл загружен');
+            showMessage('Финальный отчет успешно отправлен, файл загружен');
         } catch (error) {
             console.error('Ошибка при отправке финального отчета:', error);
             if (error.response) {
@@ -324,18 +331,18 @@ const AdminPage = () => {
                     localStorage.removeItem('accessToken');
                     navigate('/login', { replace: true });
                 } else if (error.response.status === 404) {
-                    alert('Эндпоинт не найден. Проверьте URL или обратитесь к администратору.');
+                    showMessage('Эндпоинт не найден. Проверьте URL или обратитесь к администратору.');
                 } else if (error.response.status === 403) {
-                    alert('Доступ запрещен. Проверьте права доступа.');
+                    showMessage('Доступ запрещен. Проверьте права доступа.');
                 } else {
-                    alert(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
+                    showMessage(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
                 }
             } else if (error.request) {
                 console.error('No response received:', error.request);
-                alert('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
+                showMessage('Сервер недоступен. Проверьте адрес сервера или подключение к интернету.');
             } else {
                 console.error('Request setup error:', error.message);
-                alert(`Ошибка: ${error.message}`);
+                showMessage(`Ошибка: ${error.message}`);
             }
         }
     };
@@ -425,7 +432,16 @@ const AdminPage = () => {
                     )}
                 </div>
             </header>
-            <section className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center">
+            <section className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center relative">
+                {/* Контейнер для сообщений */}
+                {message && (
+                    <div
+                        style={{ backgroundColor: '#023973', color: 'white' }}
+                        className="absolute top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-20 animate-fade-in"
+                    >
+                        {message}
+                    </div>
+                )}
                 <div className="box-border flex items-start justify-between min-w-[1128px] bg-white pt-[60px] rounded-2xl shadow-xl">
                     <div className="box-border flex flex-col items-stretch justify-start w-full pb-[128px] px-[40px]">
                         <h4

@@ -8,11 +8,16 @@ const HRdepartmentPage = () => {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [successMessage, setSuccessMessage] = useState(null);
+    const [message, setMessage] = useState(''); // Новое состояние для сообщений
     const [name, setName] = useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isAuthorized, setIsAuthorized] = useState(false);
+
+    // Функция для отображения сообщения с автоматическим исчезновением
+    const showMessage = (text, isError = false) => {
+        setMessage({ text, isError });
+        setTimeout(() => setMessage(''), 5000); // Сообщение исчезает через 5 секунд
+    };
 
     // Получение данных профиля и проверка роли
     useEffect(() => {
@@ -57,15 +62,14 @@ const HRdepartmentPage = () => {
         const file = event.target.files[0];
         if (file) {
             setSelectedFile(file);
-            setError(null);
-            setSuccessMessage(null);
+            setMessage(''); // Очищаем сообщения при выборе нового файла
         }
     };
 
     // Отправка файла на сервер
     const handleSendFile = async () => {
         if (!selectedFile) {
-            setError('Пожалуйста, выберите файл для загрузки.');
+            showMessage('Пожалуйста, выберите файл для загрузки.', true);
             return;
         }
 
@@ -76,8 +80,7 @@ const HRdepartmentPage = () => {
         }
 
         setIsLoading(true);
-        setError(null);
-        setSuccessMessage(null);
+        setMessage('');
 
         const formData = new FormData();
         formData.append('file', selectedFile);
@@ -92,7 +95,7 @@ const HRdepartmentPage = () => {
                 },
             });
             console.log('File upload response:', response.data);
-            setSuccessMessage('Файл успешно отправлен!');
+            showMessage('Файл успешно отправлен!');
             setSelectedFile(null);
         } catch (error) {
             console.error('Ошибка при отправке файла:', error);
@@ -101,18 +104,18 @@ const HRdepartmentPage = () => {
                 if (error.response.status === 401) {
                     navigate('/login', { replace: true });
                 } else if (error.response.status === 400) {
-                    setError('Некорректный формат файла или данные.');
+                    showMessage('Некорректный формат файла или данные.', true);
                 } else if (error.response.status === 403) {
-                    setError('Доступ запрещен. Проверьте права доступа.');
+                    showMessage('Доступ запрещен. Проверьте права доступа.', true);
                 } else {
-                    setError(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`);
+                    showMessage(`Ошибка сервера: ${error.response.status}. Попробуйте позже.`, true);
                 }
             } else if (error.request) {
                 console.error('No response received:', error.request);
-                setError('Сервер недоступен. Проверьте подключение к интернету.');
+                showMessage('Сервер недоступен. Проверьте подключение к интернету.', true);
             } else {
                 console.error('Request setup error:', error.message);
-                setError(`Ошибка: ${error.message}`);
+                showMessage(`Ошибка: ${error.message}`, true);
             }
         } finally {
             setIsLoading(false);
@@ -197,8 +200,7 @@ const HRdepartmentPage = () => {
                         <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                             <button
                                 onClick={handleLogout}
-                                style={{ color: '#023973',
-                                    transition: 'background-color 0.3s' }}
+                                style={{ color: '#023973', transition: 'background-color 0.3s' }}
                                 className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
                             >
                                 Выйти
@@ -207,7 +209,19 @@ const HRdepartmentPage = () => {
                     )}
                 </div>
             </header>
-            <section className="flex items-center justify-center p-6">
+            <section className="flex items-center justify-center p-6 relative">
+                {/* Контейнер для сообщений */}
+                {message && (
+                    <div
+                        style={{
+                            backgroundColor: message.isError ? '#DC2626' : '#023973',
+                            color: 'white',
+                        }}
+                        className="absolute top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-20 animate-fade-in"
+                    >
+                        {message.text}
+                    </div>
+                )}
                 <div className="flex flex-col bg-white rounded-2xl shadow-xl max-w-6xl w-full">
                     <div className="p-8">
                         <h4
@@ -281,14 +295,6 @@ const HRdepartmentPage = () => {
                                     className="h-[100px] flex items-center justify-center"
                                 >
                                     Загрузка...
-                                </div>
-                            ) : error ? (
-                                <div className="h-[100px] flex items-center justify-center text-red-600 font-[Montserrat]">
-                                    {error}
-                                </div>
-                            ) : successMessage ? (
-                                <div className="h-[100px] flex items-center justify-center text-green-600 font-[Montserrat]">
-                                    {successMessage}
                                 </div>
                             ) : (
                                 <div
